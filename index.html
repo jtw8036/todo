@@ -16,7 +16,7 @@
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* [CTO 포인트] 전체 화면 높이를 기기 높이에 딱 맞게 고정 */
+        /* [CTO 포인트] 화면 높이를 기기 전체 높이로 고정하여 하단 바 이탈 방지 */
         body, html { 
             margin: 0; padding: 0; 
             height: 100vh; height: -webkit-fill-available;
@@ -34,15 +34,15 @@
         .gnb { padding-top: var(--safe-top); background: rgba(255, 255, 255, 0.85); backdrop-filter: saturate(180%) blur(20px); z-index: 100; }
         .gnb-content { padding: 32px 24px 12px; }
         .gnb-title { font-size: 34px; font-weight: 700; color: var(--text-main); letter-spacing: -0.03em; margin-bottom: 6px; }
-        .date-picker { font-size: 15px; font-weight: 500; color: var(--text-sub); border: none; outline: none; background: none; font-family: inherit; }
+        .date-picker { font-size: 17px; font-weight: 600; border: none; color: var(--text-sub); outline: none; background: none; font-family: inherit; }
 
-        /* [CTO 포인트] 리스트 영역만 스크롤되도록 설정 */
+        /* [CTO 포인트] 콘텐츠 영역만 독립적으로 스크롤되도록 설정 */
         .content { 
             flex: 1; 
             padding: 0 24px; 
             overflow-y: auto; 
             -webkit-overflow-scrolling: touch; 
-            padding-bottom: 100px; /* 하단 바에 가려지지 않게 여백 확보 */
+            padding-bottom: calc(var(--safe-bottom) + 80px); /* 하단 바 영역만큼 여백 확보 */
         }
 
         .input-group { display: flex; background: var(--surface); padding: 8px 8px 8px 18px; border-radius: 16px; margin: 16px 0 32px; }
@@ -50,11 +50,13 @@
         .add-btn { width: 44px; height: 44px; background: var(--text-main); color: white; border: none; border-radius: 12px; font-size: 22px; }
 
         ul { list-style: none; padding: 0; margin: 0; }
+        
+        /* [CTO 포인트] 테두리 깨짐 해결: overflow-hidden으로 붉은 배경 이탈 방지 및 그림자 처리 최적화 */
         .item-wrapper { position: relative; overflow: hidden; border-radius: 20px; margin-bottom: 12px; background-color: var(--danger); }
         .list-item { 
             position: relative; z-index: 2; background: var(--bg); padding: 20px; 
             display: flex; align-items: center; border-radius: 20px;
-            box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.02); 
+            box-shadow: 0 0 0 0.5px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.02); 
             transition: transform 0.2s ease-out; touch-action: pan-y;
         }
         
@@ -63,14 +65,12 @@
         .checkbox.checked::after { content: '✓'; color: white; font-size: 14px; }
         .item-text { font-size: 17px; font-weight: 400; color: var(--text-main); line-height: 1.4; pointer-events: none; flex: 1; }
         .done-text { color: var(--text-sub); text-decoration: line-through; }
-        .quick-delete { color: #d2d2d7; font-size: 18px; padding-left: 10px; }
+        .quick-delete { color: #d2d2d7; font-size: 18px; padding-left: 10px; padding-right: 5px; }
 
-        /* [CTO 포인트] 네이비게이션 바를 화면 최하단에 절대 고정 */
+        /* [CTO 포인트] 네비게이션 바를 화면 최하단에 절대 고정 */
         .nav-bar { 
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             padding-bottom: var(--safe-bottom);
             height: calc(var(--safe-bottom) + 64px); 
             display: flex; 
@@ -100,6 +100,7 @@
         </nav>
     </div>
     <script>
+        // PWA 엔진 및 사파리 탈출 방지 로직 (기존 유지)
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('data:application/javascript,self.addEventListener("fetch", function(e){})');
         (function(a,b,c){if(c in b&&b[c]){var d,e=a.location,f=/^(a|html)$/i;a.addEventListener("click",function(a){d=a.target;while(!f.test(d.nodeName))d=d.parentNode;"href"in d&&(d.href.indexOf("http")||~d.href.indexOf(e.host))&&(a.preventDefault(),e.href=d.href)},!1)}})(document,window.navigator,"standalone");
 
@@ -150,8 +151,8 @@
         }
 
         function addTodo() { const input = document.getElementById('todoInput'); if(!input.value.trim()) return; render(input.value, false); save(); input.value = ''; loadData(); }
-        function complete(el) { const text = el.nextElementSibling.innerText; el.closest('.item-wrapper').remove(); render(text, true); save(); loadData(); }
-        function undo(el) { const text = el.nextElementSibling.innerText; el.closest('.item-wrapper').remove(); render(text, false); save(); loadData(); }
+        function complete(el) { const text = el.parentElement.querySelector('.item-text').innerText; el.closest('.item-wrapper').remove(); render(text, true); save(); loadData(); }
+        function undo(el) { const text = el.parentElement.querySelector('.item-text').innerText; el.closest('.item-wrapper').remove(); render(text, false); save(); loadData(); }
         function remove(el) { el.closest('.item-wrapper').remove(); save(); loadData(); }
 
         function save() {
