@@ -14,7 +14,7 @@
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         
-        /* [해결 1] 전체 화면 강제 고정 및 하단바 붕 뜸 방지 */
+        /* [CTO 해결 1] 하단 바 붕 뜸 방지: 화면 전체 높이를 브라우저 주소창 포함 고정 */
         html, body { 
             height: 100%; width: 100%; overflow: hidden; 
             background: var(--bg); font-family: -apple-system, sans-serif; 
@@ -32,7 +32,7 @@
         .gnb-title { font-size: 34px; font-weight: 800; color: var(--text-main); letter-spacing: -1px; }
         .date-text { font-size: 17px; font-weight: 600; color: var(--text-sub); margin-top: 4px; }
 
-        /* [해결 2] 리스트 영역 독립 스크롤 및 여백 최적화 */
+        /* [CTO 해결 2] 스크롤 영역과 하단 바 간섭 차단 */
         .content { 
             flex: 1; padding: 0 24px; overflow-y: auto; 
             -webkit-overflow-scrolling: touch;
@@ -44,23 +44,26 @@
             border-radius: 16px; margin: 20px 0 30px; 
         }
         input { flex: 1; border: none; background: none; height: 44px; font-size: 17px; outline: none; }
-        .add-btn { width: 44px; height: 44px; background: var(--text-main); color: white; border: none; border-radius: 12px; font-size: 20px; }
+        .add-btn { width: 44px; height: 44px; background: var(--text-main); color: white; border: none; border-radius: 12px; font-size: 20px; cursor: pointer; }
 
-        /* [해결 3] 카드 밀림 및 테두리 깨짐 원천 차단 */
+        /* 리스트 아이템 디자인 복구 */
         ul { list-style: none; }
         .list-item { 
             position: relative; background: var(--bg); padding: 20px; 
             display: flex; align-items: center; border-radius: 20px;
             margin-bottom: 12px; width: 100%;
-            /* 테두리 깨짐 대신 깔끔한 그림자로 경계면 처리 */
             box-shadow: 0 0 0 0.5px rgba(0,0,0,0.1), 0 2px 10px rgba(0,0,0,0.03);
         }
         
-        .checkbox { width: 24px; height: 24px; border: 1.5px solid #d2d2d7; border-radius: 7px; margin-right: 16px; flex-shrink: 0; }
+        .checkbox { width: 24px; height: 24px; border: 1.5px solid #d2d2d7; border-radius: 7px; margin-right: 16px; flex-shrink: 0; cursor: pointer; }
+        .checkbox.active { background: var(--text-main); border-color: var(--text-main); display: flex; align-items: center; justify-content: center; }
+        .checkbox.active::after { content: '✓'; color: white; font-size: 14px; }
+        
         .item-text { font-size: 17px; font-weight: 500; color: var(--text-main); flex: 1; }
-        .quick-delete { color: #d2d2d7; font-size: 18px; padding-left: 10px; }
+        .item-text.done { text-decoration: line-through; color: var(--text-sub); }
+        .quick-delete { color: #d2d2d7; font-size: 18px; padding-left: 10px; cursor: pointer; }
 
-        /* [해결 4] 하단 바 위치 물리적 고정 */
+        /* [CTO 해결 3] 하단 네비게이션 위치 물리적 고정 및 터치 정상화 */
         .nav-bar { 
             position: fixed; bottom: 0; left: 0; right: 0;
             height: calc(64px + var(--safe-bottom));
@@ -69,7 +72,7 @@
             border-top: 0.5px solid rgba(0,0,0,0.1);
             display: flex; z-index: 200;
         }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #a1a1a6; font-size: 10px; font-weight: 600; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #a1a1a6; font-size: 10px; font-weight: 600; cursor: pointer; }
         .nav-item.active { color: var(--text-main); }
         .nav-icon { font-size: 20px; margin-bottom: 2px; }
     </style>
@@ -84,50 +87,92 @@
         </header>
         
         <main class="content">
-            <div class="input-group">
-                <input type="text" id="todoInput" placeholder="새로운 할 일">
-                <button class="add-btn" onclick="add()">+</button>
+            <div id="todoSection">
+                <div class="input-group">
+                    <input type="text" id="todoInput" placeholder="새로운 할 일">
+                    <button class="add-btn" onclick="add()">+</button>
+                </div>
+                <ul id="activeList"></ul>
             </div>
-            <ul id="list"></ul>
+            <div id="doneSection" style="display:none; padding-top: 20px;">
+                <ul id="doneList"></ul>
+            </div>
         </main>
 
         <nav class="nav-bar">
-            <div class="nav-item active"><span class="nav-icon">◯</span><span>진행중</span></div>
-            <div class="nav-item"><span class="nav-icon">●</span><span>완료됨</span></div>
+            <div class="nav-item active" id="todoTab" onclick="switchTab('todo')"><span class="nav-icon">◯</span><span>진행중</span></div>
+            <div class="nav-item" id="doneTab" onclick="switchTab('done')"><span class="nav-icon">●</span><span>완료됨</span></div>
         </nav>
     </div>
 
     <script>
-        // 데이터 저장 및 렌더링 (가장 안전한 로직으로 교체)
-        let todos = JSON.parse(localStorage.getItem('vibe_save')) || [];
+        let db = JSON.parse(localStorage.getItem('vibe_save_v10')) || { active: [], done: [] };
+
+        function save() { localStorage.setItem('vibe_save_v10', JSON.stringify(db)); }
 
         function render() {
-            const ul = document.getElementById('list');
-            ul.innerHTML = todos.length === 0 ? `<div style="text-align:center; padding-top:80px; color:#c7c7cc;">할 일이 없습니다.</div>` : "";
-            todos.forEach((item, i) => {
+            const activeUl = document.getElementById('activeList');
+            const doneUl = document.getElementById('doneList');
+            activeUl.innerHTML = "";
+            doneUl.innerHTML = "";
+
+            if (db.active.length === 0 && document.getElementById('todoSection').style.display !== 'none') {
+                activeUl.innerHTML = `<div style="text-align:center; padding-top:80px; color:#c7c7cc;">할 일이 없습니다.</div>`;
+            }
+
+            db.active.forEach((text, i) => {
                 const li = document.createElement('li');
                 li.className = 'list-item';
                 li.innerHTML = `
-                    <div class="checkbox"></div>
-                    <span class="item-text">${item}</span>
-                    <div class="quick-delete" onclick="del(${i})">✕</div>
+                    <div class="checkbox" onclick="complete(${i})"></div>
+                    <span class="item-text">${text}</span>
+                    <div class="quick-delete" onclick="del(${i}, 'active')">✕</div>
                 `;
-                ul.appendChild(li);
+                activeUl.appendChild(li);
+            });
+
+            db.done.forEach((text, i) => {
+                const li = document.createElement('li');
+                li.className = 'list-item';
+                li.innerHTML = `
+                    <div class="checkbox active" onclick="undo(${i})"></div>
+                    <span class="item-text done">${text}</span>
+                    <div class="quick-delete" onclick="del(${i}, 'done')">✕</div>
+                `;
+                doneUl.appendChild(li);
             });
         }
 
         function add() {
             const input = document.getElementById('todoInput');
             if(!input.value.trim()) return;
-            todos.push(input.value);
-            localStorage.setItem('vibe_save', JSON.stringify(todos));
+            db.active.push(input.value);
             input.value = '';
-            render();
+            save(); render();
         }
 
-        function del(i) {
-            todos.splice(i, 1);
-            localStorage.setItem('vibe_save', JSON.stringify(todos));
+        function complete(i) {
+            const item = db.active.splice(i, 1);
+            db.done.push(item[0]);
+            save(); render();
+        }
+
+        function undo(i) {
+            const item = db.done.splice(i, 1);
+            db.active.push(item[0]);
+            save(); render();
+        }
+
+        function del(i, type) {
+            db[type].splice(i, 1);
+            save(); render();
+        }
+
+        function switchTab(type) {
+            document.getElementById('todoSection').style.display = type === 'todo' ? 'block' : 'none';
+            document.getElementById('doneSection').style.display = type === 'done' ? 'block' : 'none';
+            document.getElementById('todoTab').classList.toggle('active', type === 'todo');
+            document.getElementById('doneTab').classList.toggle('active', type === 'done');
             render();
         }
 
