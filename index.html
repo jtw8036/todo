@@ -24,29 +24,30 @@
 
         .app-container { display: flex; flex-direction: column; height: 100%; }
 
-        /* GNB: 앱 제목과 날짜를 층으로 분리 */
+        /* GNB: 좌측 상단 정렬 레이아웃 */
         .gnb { 
             padding-top: var(--safe-top); 
             background: rgba(255, 255, 255, 0.8); 
             backdrop-filter: blur(20px); 
-            border-bottom: 0.5px solid #e5e5e7;
             z-index: 100;
         }
-        .gnb-title { 
-            height: 44px; display: flex; align-items: center; justify-content: center; 
-            font-size: 17px; font-weight: 700; color: #1c1c1e;
+        .gnb-content {
+            padding: 20px 24px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
-        .gnb-sub { 
-            padding: 10px 24px 15px; display: flex; justify-content: center; 
+        .gnb-title { 
+            font-size: 32px; font-weight: 800; color: #1c1c1e;
+            letter-spacing: -1px;
         }
         .date-picker { 
-            font-size: 20px; font-weight: 800; border: none; color: var(--primary); 
-            outline: none; background: none; font-family: inherit; text-align: center;
+            font-size: 17px; font-weight: 600; border: none; color: var(--primary); 
+            outline: none; background: none; font-family: inherit; padding: 0;
         }
 
         .content { flex: 1; padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         
-        /* 입력창 및 리스트 스타일 유지 */
         .input-group { display: flex; background: var(--surface); padding: 10px 10px 10px 20px; border-radius: 20px; margin-bottom: 24px; }
         input[type="text"] { flex: 1; border: none; background: none; height: 44px; font-size: 17px; outline: none; }
         .add-btn { width: 44px; height: 44px; background: var(--primary); color: white; border: none; border-radius: 14px; font-size: 24px; font-weight: 600; }
@@ -58,7 +59,6 @@
         .item-text { font-size: 16px; font-weight: 500; color: #1c1c1e; }
         .done-text { text-decoration: line-through; color: #8e8e93; }
 
-        /* 하단 메뉴 바 유지 */
         .nav-bar { 
             height: calc(var(--safe-bottom) + 70px); 
             display: flex; border-top: 0.5px solid #d1d1d6; 
@@ -72,10 +72,10 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- 상단 GNB 영역 -->
+        <!-- 상단 GNB: 왼쪽 상단 배치 -->
         <header class="gnb">
-            <div class="gnb-title">ToDo</div>
-            <div class="gnb-sub">
+            <div class="gnb-content">
+                <div class="gnb-title">ToDo</div>
                 <input type="date" id="dateSelect" class="date-picker" onchange="loadData()">
             </div>
         </header>
@@ -104,7 +104,6 @@
     </div>
 
     <script>
-        // PWA 엔진 & 사파리 탈출 방지
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('data:application/javascript,self.addEventListener("fetch", function(e){})');
         (function(a,b,c){if(c in b&&b[c]){var d,e=a.location,f=/^(a|html)$/i;a.addEventListener("click",function(a){d=a.target;while(!f.test(d.nodeName))d=d.parentNode;"href"in d&&(d.href.indexOf("http")||~d.href.indexOf(e.host))&&(a.preventDefault(),e.href=d.href)},!1)}})(document,window.navigator,"standalone");
 
