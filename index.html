@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
+    <!-- iOS PWA 전용 설정 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ToDo">
@@ -13,9 +14,7 @@
 
     <style>
         :root { 
-            --primary: #007aff; 
-            --bg: #ffffff;
-            --surface: #f2f2f7;
+            --primary: #007aff; --bg: #ffffff; --surface: #f2f2f7;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
@@ -25,20 +24,29 @@
 
         .app-container { display: flex; flex-direction: column; height: 100%; padding-top: var(--safe-top); }
 
-        .header { padding: 20px 24px; border-bottom: 0.5px solid #e5e5e7; }
-        .title { font-size: 26px; font-weight: 800; color: var(--primary); margin: 0; }
+        /* 헤더 & 날짜 선택 */
+        .header { padding: 15px 24px; border-bottom: 0.5px solid #e5e5e7; display: flex; align-items: center; justify-content: space-between; }
+        .date-picker { font-size: 22px; font-weight: 800; border: none; color: var(--primary); outline: none; background: none; font-family: inherit; }
 
         .content { flex: 1; padding: 24px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         
-        /* 힌트 텍스트가 포함된 입력창 바이브 */
+        /* 입력창 바이브 */
         .input-group { display: flex; background: var(--surface); padding: 10px 10px 10px 20px; border-radius: 20px; margin-bottom: 24px; }
-        input { flex: 1; border: none; background: none; height: 44px; font-size: 17px; outline: none; color: #1c1c1e; }
-        input::placeholder { color: #8e8e93; }
+        input[type="text"] { flex: 1; border: none; background: none; height: 44px; font-size: 17px; outline: none; }
         .add-btn { width: 44px; height: 44px; background: var(--primary); color: white; border: none; border-radius: 14px; font-size: 24px; font-weight: 600; }
 
-        .list-item { background: var(--surface); padding: 18px; border-radius: 18px; margin-bottom: 12px; font-weight: 500; display: flex; align-items: center; }
+        /* 리스트 스타일 */
+        ul { list-style: none; padding: 0; margin: 0; }
+        .list-item { 
+            background: var(--surface); padding: 18px; border-radius: 18px; margin-bottom: 12px; 
+            display: flex; align-items: center; transition: 0.3s; 
+        }
+        .list-item.fade-out { opacity: 0; transform: translateX(30px); }
+        .checkbox { width: 22px; height: 22px; border: 2px solid var(--primary); border-radius: 50%; margin-right: 15px; cursor: pointer; flex-shrink: 0; }
+        .item-text { font-size: 16px; font-weight: 500; color: #1c1c1e; }
+        .done-text { text-decoration: line-through; color: #8e8e93; }
 
-        /* 복구된 하단 메뉴 */
+        /* 하단 메뉴 */
         .nav-bar { 
             height: calc(var(--safe-bottom) + 70px); 
             display: flex; border-top: 0.5px solid #d1d1d6; 
@@ -52,17 +60,22 @@
 </head>
 <body>
     <div class="app-container">
-        <header class="header"><h1 class="title">ToDo</h1></header>
+        <header class="header">
+            <input type="date" id="dateSelect" class="date-picker" onchange="loadData()">
+            <h1 style="font-size: 18px; color: #8e8e93; margin: 0;">ToDo</h1>
+        </header>
         
         <main class="content">
-            <div id="todoSection">
+            <div id="todoTab">
                 <div class="input-group">
                     <input type="text" id="todoInput" placeholder="할 일을 입력하세요">
-                    <button class="add-btn" onclick="add()">+</button>
+                    <button class="add-btn" onclick="addTodo()">+</button>
                 </div>
-                <div id="list"></div>
+                <ul id="activeList"></ul>
             </div>
-            <div id="doneSection" style="display:none; color:#8e8e93; text-align:center; padding-top:50px;">완료된 목록이 없습니다.</div>
+            <div id="doneTab" style="display:none;">
+                <ul id="doneList"></ul>
+            </div>
         </main>
 
         <nav class="nav-bar">
@@ -76,28 +89,67 @@
     </div>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:application/javascript,self.addEventListener("fetch", function(e){})');
-        }
-
+        // PWA 엔진 & 사파리 탈출 방지
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('data:application/javascript,self.addEventListener("fetch", function(e){})');
         (function(a,b,c){if(c in b&&b[c]){var d,e=a.location,f=/^(a|html)$/i;a.addEventListener("click",function(a){d=a.target;while(!f.test(d.nodeName))d=d.parentNode;"href"in d&&(d.href.indexOf("http")||~d.href.indexOf(e.host))&&(a.preventDefault(),e.href=d.href)},!1)}})(document,window.navigator,"standalone");
 
-        function add() {
+        const dInput = document.getElementById('dateSelect');
+        dInput.value = new Date().toISOString().substring(0, 10);
+        let db = JSON.parse(localStorage.getItem('vibe_todo_v3')) || {};
+
+        function loadData() {
+            const date = dInput.value;
+            document.getElementById('activeList').innerHTML = "";
+            document.getElementById('doneList').innerHTML = "";
+            if (db[date]) {
+                db[date].active.forEach(t => render(t, false));
+                db[date].done.forEach(t => render(t, true));
+            }
+        }
+
+        function render(text, isDone) {
+            const li = document.createElement('li');
+            li.className = 'list-item';
+            li.innerHTML = isDone 
+                ? `<span class="item-text done-text">${text}</span>`
+                : `<div class="checkbox" onclick="complete(this)"></div><span class="item-text">${text}</span>`;
+            document.getElementById(isDone ? 'doneList' : 'activeList').appendChild(li);
+        }
+
+        function addTodo() {
             const input = document.getElementById('todoInput');
             if(!input.value.trim()) return;
-            const item = document.createElement('div');
-            item.className = 'list-item';
-            item.innerHTML = `<span style="width:20px;height:20px;border:2px solid var(--primary);border-radius:50%;margin-right:12px;"></span>${input.value}`;
-            document.getElementById('list').prepend(item);
+            render(input.value, false);
+            save();
             input.value = '';
         }
 
+        function complete(el) {
+            const li = el.parentElement;
+            li.classList.add('fade-out');
+            setTimeout(() => {
+                li.remove();
+                render(li.innerText.trim(), true);
+                save();
+            }, 300);
+        }
+
+        function save() {
+            const date = dInput.value;
+            const active = Array.from(document.querySelectorAll('#activeList .item-text')).map(el => el.innerText);
+            const done = Array.from(document.querySelectorAll('#doneList .item-text')).map(el => el.innerText);
+            db[date] = { active, done };
+            localStorage.setItem('vibe_todo_v3', JSON.stringify(db));
+        }
+
         function switchTab(tab, el) {
-            document.getElementById('todoSection').style.display = tab === 'todo' ? 'block' : 'none';
-            document.getElementById('doneSection').style.display = tab === 'done' ? 'block' : 'none';
+            document.getElementById('todoTab').style.display = tab === 'todo' ? 'block' : 'none';
+            document.getElementById('doneTab').style.display = tab === 'done' ? 'block' : 'none';
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
         }
+
+        loadData();
     </script>
 </body>
 </html>
