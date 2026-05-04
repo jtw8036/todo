@@ -11,11 +11,11 @@
     <style>
         :root { 
             --primary: #007aff; --bg: #ffffff; --surface: #f5f5f7;
-            --text-main: #1d1d1f; --text-sub: #86868b;
+            --text-main: #1d1d1f; --text-sub: #86868b; --danger: #ff3b30;
             --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         .app-container { display: flex; flex-direction: column; height: 100%; }
         .gnb { padding-top: var(--safe-top); background: rgba(255, 255, 255, 0.85); backdrop-filter: saturate(180%) blur(20px); z-index: 100; }
         .gnb-content { padding: 32px 24px 12px; }
@@ -26,22 +26,19 @@
         input[type="text"] { flex: 1; border: none; background: none; height: 44px; font-size: 17px; outline: none; color: var(--text-main); }
         .add-btn { width: 44px; height: 44px; background: var(--text-main); color: white; border: none; border-radius: 12px; font-size: 22px; }
         ul { list-style: none; padding: 0; margin: 0; }
+        .item-wrapper { position: relative; overflow: hidden; border-radius: 20px; margin-bottom: 12px; background-color: var(--danger); }
         .list-item { 
-            background: var(--bg); padding: 20px; border-radius: 20px; margin-bottom: 12px; 
-            display: flex; align-items: center; border: 1px solid #f2f2f2;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; z-index: 2; background: var(--bg); padding: 20px; 
+            display: flex; align-items: center; border: 1px solid #f2f2f2; border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: transform 0.2s ease-out; touch-action: pan-y;
         }
-        .list-item.fade-out { opacity: 0; transform: scale(0.95); filter: blur(4px); }
+        .delete-btn { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; z-index: 1; }
         .checkbox { width: 24px; height: 24px; border: 1.5px solid #d2d2d7; border-radius: 7px; margin-right: 16px; flex-shrink: 0; }
         .checkbox.checked { background: var(--text-main); border-color: var(--text-main); display: flex; align-items: center; justify-content: center; }
         .checkbox.checked::after { content: '✓'; color: white; font-size: 14px; }
-        .item-text { font-size: 17px; font-weight: 400; color: var(--text-main); line-height: 1.4; }
+        .item-text { font-size: 17px; font-weight: 400; color: var(--text-main); line-height: 1.4; pointer-events: none; }
         .done-text { color: var(--text-sub); text-decoration: line-through; }
-        .nav-bar { 
-            height: calc(var(--safe-bottom) + 64px); display: flex; 
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: saturate(180%) blur(20px);
-            border-top: 0.5px solid rgba(0,0,0,0.05); padding-bottom: var(--safe-bottom);
-        }
+        .nav-bar { height: calc(var(--safe-bottom) + 64px); display: flex; background: rgba(255, 255, 255, 0.85); backdrop-filter: saturate(180%) blur(20px); border-top: 0.5px solid rgba(0,0,0,0.05); padding-bottom: var(--safe-bottom); }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; color: #a1a1a6; }
         .nav-item.active { color: var(--text-main); }
         .nav-icon { font-size: 20px; margin-bottom: 2px; }
@@ -67,28 +64,69 @@
         (function(a,b,c){if(c in b&&b[c]){var d,e=a.location,f=/^(a|html)$/i;a.addEventListener("click",function(a){d=a.target;while(!f.test(d.nodeName))d=d.parentNode;"href"in d&&(d.href.indexOf("http")||~d.href.indexOf(e.host))&&(a.preventDefault(),e.href=d.href)},!1)}})(document,window.navigator,"standalone");
 
         const dInput = document.getElementById('dateSelect');
-        dInput.value = new Date().toISOString().substring(0, 10);
-        
-        // [CTO 포인트] 저장된 데이터를 불러오거나 없으면 빈 객체를 생성합니다.
-        let db = JSON.parse(localStorage.getItem('vibe_todo_final')) || {};
+        let db = JSON.parse(localStorage.getItem('vibe_todo_v6')) || {};
+
+        // [CTO 포인트] 앱 실행 시 오늘 날짜를 자동으로 셋팅하는 로직
+        function initApp() {
+            const now = new Date();
+            // 한국 시간 기준으로 날짜 문자열(YYYY-MM-DD)을 생성합니다.
+            const offset = now.getTimezoneOffset() * 60000;
+            const today = new Date(now.getTime() - offset).toISOString().split('T')[0];
+            
+            dInput.value = today; // 입력창에 오늘 날짜 표시
+            loadData(); // 오늘 날짜 데이터 불러오기
+        }
 
         function loadData() {
-            const date = dInput.value;
             document.getElementById('activeList').innerHTML = "";
             document.getElementById('doneList').innerHTML = "";
-            if (db[date]) {
-                db[date].active.forEach(t => render(t, false));
-                db[date].done.forEach(t => render(t, true));
+            if (db[dInput.value]) {
+                db[dInput.value].active.forEach(t => render(t, false));
+                db[dInput.value].done.forEach(t => render(t, true));
             }
         }
 
         function render(text, isDone) {
-            const li = document.createElement('li');
-            li.className = 'list-item';
-            li.innerHTML = isDone 
-                ? `<div class="checkbox checked" onclick="undo(this)"></div><span class="item-text done-text">${text}</span>`
-                : `<div class="checkbox" onclick="complete(this)"></div><span class="item-text">${text}</span>`;
-            document.getElementById(isDone ? 'doneList' : 'activeList').appendChild(li);
+            const wrapper = document.createElement('div');
+            wrapper.className = 'item-wrapper';
+            wrapper.innerHTML = `
+                <div class="delete-btn">삭제</div>
+                <div class="list-item" ontouchstart="handleTouchStart(event)" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)">
+                    <div class="checkbox ${isDone ? 'checked' : ''}" onclick="${isDone ? 'undo(this)' : 'complete(this)'}"></div>
+                    <span class="item-text ${isDone ? 'done-text' : ''}">${text}</span>
+                </div>
+            `;
+            document.getElementById(isDone ? 'doneList' : 'activeList').appendChild(wrapper);
+        }
+
+        let startX = 0;
+        let currentItem = null;
+
+        function handleTouchStart(e) {
+            startX = e.touches[0].clientX;
+            currentItem = e.currentTarget;
+            currentItem.style.transition = 'none';
+        }
+
+        function handleTouchMove(e) {
+            const diff = e.touches[0].clientX - startX;
+            if (diff < 0 && diff > -100) {
+                currentItem.style.transform = `translateX(${diff}px)`;
+            }
+        }
+
+        function handleTouchEnd(e) {
+            const diff = e.changedTouches[0].clientX - startX;
+            currentItem.style.transition = 'transform 0.2s ease-out';
+            if (diff < -50) {
+                currentItem.style.transform = 'translateX(-80px)';
+                currentItem.previousElementSibling.onclick = () => {
+                    currentItem.parentElement.remove();
+                    save();
+                };
+            } else {
+                currentItem.style.transform = 'translateX(0)';
+            }
         }
 
         function addTodo() {
@@ -100,23 +138,17 @@
         }
 
         function complete(el) {
-            const li = el.parentElement;
-            li.classList.add('fade-out');
-            setTimeout(() => {
-                li.remove();
-                render(li.querySelector('.item-text').innerText.trim(), true);
-                save();
-            }, 400);
+            const text = el.nextElementSibling.innerText;
+            el.closest('.item-wrapper').remove();
+            render(text, true);
+            save();
         }
 
         function undo(el) {
-            const li = el.parentElement;
-            li.classList.add('fade-out');
-            setTimeout(() => {
-                li.remove();
-                render(li.querySelector('.item-text').innerText.trim(), false);
-                save();
-            }, 400);
+            const text = el.nextElementSibling.innerText;
+            el.closest('.item-wrapper').remove();
+            render(text, false);
+            save();
         }
 
         function save() {
@@ -124,8 +156,7 @@
             const active = Array.from(document.querySelectorAll('#activeList .item-text')).map(el => el.innerText);
             const done = Array.from(document.querySelectorAll('#doneList .item-text')).map(el => el.innerText);
             db[date] = { active, done };
-            // [CTO 포인트] 현재 상태를 폰의 저장소에 즉시 기록합니다.
-            localStorage.setItem('vibe_todo_final', JSON.stringify(db));
+            localStorage.setItem('vibe_todo_v6', JSON.stringify(db));
         }
 
         function switchTab(tab, el) {
@@ -135,7 +166,8 @@
             el.classList.add('active');
         }
 
-        loadData();
+        // 앱 실행 시 초기화 함수 실행
+        initApp();
     </script>
 </body>
 </html>
