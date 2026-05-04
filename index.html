@@ -48,26 +48,27 @@
       touch-action: manipulation;
     }
 
-    /* [CTO 해결 1] 사파리 뷰포트 버그 방지 및 하단 배경색 동기화 */
+    /* [CTO 해결 포인트 1] 화면 자체를 고정 (바운스 스크롤 차단 및 하단 틈새 원천 제거) */
     html, body {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
       width: 100%; height: 100%;
-      height: -webkit-fill-available;
       overflow: hidden;
       font-family: 'Noto Sans KR', -apple-system, sans-serif;
-      background: #FFFFFF; /* 하단 바와 색상을 맞춰 틈새 시각적 차단 */
+      background: var(--bg);
       color: var(--label);
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── 앱 레이아웃 ── */
+    /* [CTO 해결 포인트 2] dvh 계산 대신 앱을 화면 네 모서리에 절대 좌표로 박제 */
     #app {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
       display: flex;
       flex-direction: column;
       width: 100%;
-      height: 100dvh; /* 동적 뷰포트 높이 */
-      height: -webkit-fill-available; /* 사파리 호환성 */
+      height: auto;
       overflow: hidden;
-      background: var(--bg); /* 실제 앱 배경색은 여기서 렌더링 */
     }
 
     /* ────────────────────────────────────────
@@ -249,6 +250,7 @@
       text-transform: uppercase;
     }
 
+    /* 소제목 옆 카운트 */
     .section-count {
       font-size: 12px;
       font-weight: 500;
@@ -388,7 +390,7 @@
     }
 
     /* ────────────────────────────────────────
-       하단 탭바 — [CTO 해결 2] 높이 및 정렬 강제 고정
+       하단 탭바
     ──────────────────────────────────────── */
     #tab-bar {
       flex-shrink: 0;
@@ -397,9 +399,9 @@
       -webkit-backdrop-filter: saturate(180%) blur(20px);
       border-top: 1px solid var(--separator);
       display: flex;
-      align-items: center; /* 내부 아이템을 수직 중앙 정렬하여 붕 뜨는 현상 억제 */
-      height: calc(64px + var(--safe-bottom)); /* 높이 절대값 고정 */
-      padding-bottom: var(--safe-bottom);
+      align-items: flex-start;
+      padding-top: 8px;
+      padding-bottom: calc(var(--safe-bottom) + 4px);
       padding-left: var(--safe-left);
       padding-right: var(--safe-right);
       z-index: 200;
@@ -410,12 +412,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center; /* 아이콘과 텍스트 중앙 안착 */
       gap: 3px;
       border: none;
       background: none;
       cursor: pointer;
-      height: 100%; /* 부모(탭 바)의 높이를 꽉 채우도록 설정 */
       padding: 0 4px;
       transition: transform 0.12s;
     }
