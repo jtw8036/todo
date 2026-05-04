@@ -1,68 +1,39 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <!-- 신분증(manifest) 연결 -->
-    <link rel="manifest" href="./manifest.json">
-    <!-- 1. PWABuilder가 찾는 핵심 명세서 (Manifest) -->
-    <!-- 파일 분리 없이 이 한 줄로 앱의 이름, 아이콘, 실행 모드를 정의합니다 -->
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Vibe Todo","short_name":"Todo","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#007aff","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/4697/4697260.png","sizes":"512x512","type":"image/png"}]}'>
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
 
-    <!-- 2. iOS 전용 네이티브 앱 설정 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/4697/4697260.png">
+export default function App() {
+  const [task, setTask] = useState('');
+  const [list, setList] = useState([]);
 
-    <title>Vibe Todo</title>
-    <style>
-        :root { --primary: #007aff; --bg: #ffffff; --surface: #f2f2f7; --text: #1c1c1e; --safe-top: env(safe-area-inset-top); }
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: -apple-system, sans-serif; background: var(--bg); }
-        .app-container { display: flex; flex-direction: column; height: 100%; padding-top: var(--safe-top); }
-        .header { padding: 20px 24px; border-bottom: 0.5px solid #e5e5e7; }
-        .date-picker { font-size: 24px; font-weight: 800; border: none; color: var(--primary); outline: none; background: none; }
-        .content { flex: 1; padding: 24px; overflow-y: auto; }
-        .input-box { display: flex; background: var(--surface); padding: 8px 8px 8px 20px; border-radius: 20px; margin-bottom: 20px; }
-        input { flex: 1; border: none; background: none; height: 44px; font-size: 16px; outline: none; }
-        .add-btn { width: 44px; height: 44px; background: var(--primary); color: white; border: none; border-radius: 15px; font-size: 24px; cursor: pointer; }
-        ul { list-style: none; padding: 0; margin: 0; }
-        li { display: flex; align-items: center; padding: 18px; background: var(--surface); border-radius: 18px; margin-bottom: 12px; }
-        .nav { height: 84px; display: flex; border-top: 0.5px solid #d1d1d6; background: rgba(255,255,255,0.9); backdrop-filter: blur(20px); }
-        .nav-item { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #8e8e93; }
-        .nav-item.active { color: var(--primary); }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        <header class="header"><input type="date" id="dateSelect" class="date-picker"></header>
-        <main class="content">
-            <div class="input-box">
-                <input type="text" id="todoInput" placeholder="할 일을 입력하세요">
-                <button class="add-btn" onclick="addTodo()">+</button>
-            </div>
-            <div id="todoTab"><ul></ul></div>
-        </main>
-        <nav class="nav">
-            <div class="nav-item active">📝 할 일</div>
-            <div class="nav-item">✅ 완료함</div>
-        </nav>
-    </div>
-    <script>
-        // PWABuilder가 "앱"으로 인식하도록 돕는 최소한의 서비스 워커 등록
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:application/javascript,self.addEventListener("fetch", function(e){})');
-        }
+  const add = () => {
+    if (task) {
+      setList([...list, { id: Date.now().toString(), text: task }]);
+      setTask('');
+    }
+  };
 
-        const dInput = document.getElementById('dateSelect');
-        dInput.value = new Date().toISOString().substring(0, 10);
-        function addTodo() {
-            const val = document.getElementById('todoInput').value;
-            if(!val) return;
-            const li = document.createElement('li');
-            li.innerHTML = `<input type="checkbox"> <span style="margin-left:12px">${val}</span>`;
-            document.querySelector('ul').appendChild(li);
-            document.getElementById('todoInput').value = "";
-        }
-    </script>
-</body>
-</html>
+  return (
+    <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
+      <View style={styles.header}><Text style={styles.title}>내 전용 앱</Text></View>
+      <FlatList 
+        data={list}
+        renderItem={({item}) => <View style={styles.card}><Text>{item.text}</Text></View>}
+        keyExtractor={item => item.id}
+        style={{padding: 20}}
+      />
+      <View style={styles.footer}>
+        <TextInput style={styles.input} value={task} onChangeText={setTask} placeholder="할 일 입력" />
+        <TouchableOpacity style={styles.btn} onPress={add}><Text style={{color:'#fff'}}>+</Text></TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: { padding: 20, borderBottomWidth: 1, borderBottomColor: '#eee', paddingTop: 50 },
+  title: { fontSize: 24, fontWeight: '800', color: '#007AFF' },
+  card: { padding: 20, backgroundColor: '#F2F2F7', borderRadius: 15, marginBottom: 10 },
+  footer: { flexDirection: 'row', padding: 20, paddingBottom: 40 },
+  input: { flex: 1, height: 50, backgroundColor: '#F2F2F7', borderRadius: 15, paddingHorizontal: 15 },
+  btn: { marginLeft: 10, width: 50, height: 50, backgroundColor: '#007AFF', borderRadius: 15, justifyContent: 'center', alignItems: 'center' }
+});
