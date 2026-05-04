@@ -1,139 +1,1162 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <style>
-        :root { 
-            --primary: #007aff; --bg: #ffffff; --surface: #f5f5f7;
-            --text-main: #1d1d1f; --text-sub: #86868b;
-            --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        
-        /* [CTO 해결] 하단바 붕 뜸 방지: flex 구조로 화면 높이를 정확히 삼등분 */
-        html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: -apple-system, sans-serif; }
-        
-        .app-container { 
-            display: flex; flex-direction: column; 
-            height: 100vh; height: -webkit-fill-available;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Today" />
+  <title>Today</title>
 
-        /* 1. 상단 GNB */
-        .gnb { padding-top: var(--safe-top); background: #fff; z-index: 10; }
-        .gnb-content { padding: 30px 24px 10px; }
-        .gnb-title { font-size: 34px; font-weight: 800; color: var(--text-main); letter-spacing: -1px; }
-        .date-text { font-size: 17px; font-weight: 600; color: var(--text-sub); margin-top: 4px; }
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;600;700&display=swap" rel="stylesheet" />
 
-        /* 2. 중앙 스크롤 영역 */
-        .content { 
-            flex: 1; padding: 0 24px; overflow-y: auto; -webkit-overflow-scrolling: touch;
-        }
-        .input-group { 
-            display: flex; background: var(--surface); padding: 8px 8px 8px 18px; 
-            border-radius: 16px; margin: 20px 0 30px; 
-        }
-        input { flex: 1; border: none; background: none; height: 44px; font-size: 17px; outline: none; }
-        .add-btn { width: 44px; height: 44px; background: var(--text-main); color: white; border: none; border-radius: 12px; font-size: 20px; }
+  <style>
+    /* ── Reset & Variables ─────────────────────────────── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        /* 리스트 스타일 */
-        ul { list-style: none; }
-        .list-item { 
-            background: var(--bg); padding: 20px; display: flex; align-items: center; 
-            border-radius: 20px; margin-bottom: 12px;
-            box-shadow: 0 0 0 0.5px rgba(0,0,0,0.1), 0 2px 10px rgba(0,0,0,0.03);
-        }
-        .checkbox { width: 24px; height: 24px; border: 1.5px solid #d2d2d7; border-radius: 7px; margin-right: 16px; flex-shrink: 0; }
-        .checkbox.checked { background: var(--text-main); border-color: var(--text-main); display: flex; align-items: center; justify-content: center; }
-        .checkbox.checked::after { content: '✓'; color: white; font-size: 14px; }
-        .item-text { font-size: 17px; font-weight: 500; flex: 1; color: var(--text-main); }
-        .item-text.done { text-decoration: line-through; color: var(--text-sub); }
+    :root {
+      --bg:            #F2F2F7;
+      --surface:       #FFFFFF;
+      --surface-2:     #F9F9FB;
+      --primary:       #007AFF;
+      --primary-light: #E8F1FF;
+      --danger:        #FF3B30;
+      --danger-light:  #FFF0EF;
+      --success:       #34C759;
+      --label:         #1C1C1E;
+      --label-2:       #3A3A3C;
+      --label-3:       #636366;
+      --label-4:       #AEAEB2;
+      --separator:     rgba(60,60,67,0.12);
+      --shadow-sm:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md:     0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+      --radius-card:   16px;
+      --radius-btn:    14px;
+      --nav-height:    56px;
+      --tab-height:    60px;
 
-        /* 3. 하단 네비게이션: 고정(fixed)이 아닌 레이아웃의 일부로 배치 */
-        .nav-bar { 
-            background: #fff; border-top: 0.5px solid #eee;
-            padding-bottom: var(--safe-bottom);
-            display: flex; height: calc(64px + var(--safe-bottom));
-        }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #a1a1a6; font-size: 10px; font-weight: 600; }
-        .nav-item.active { color: var(--text-main); }
-        .nav-icon { font-size: 20px; margin-bottom: 2px; }
-    </style>
+      /* iOS safe area fallbacks */
+      --safe-top:    env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left:   env(safe-area-inset-left, 0px);
+      --safe-right:  env(safe-area-inset-right, 0px);
+    }
+
+    html, body {
+      height: 100%;
+      /* Use dvh for dynamic viewport on iOS Safari */
+      height: 100dvh;
+      overflow: hidden;
+      font-family: -apple-system, 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--label);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── App Shell ─────────────────────────────────────── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      height: 100dvh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Top Navigation Bar ────────────────────────────── */
+    #navbar {
+      flex-shrink: 0;
+      background: rgba(242,242,247,0.92);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+      padding-top: calc(var(--safe-top) + 8px);
+      padding-left: calc(var(--safe-left) + 20px);
+      padding-right: calc(var(--safe-right) + 20px);
+      padding-bottom: 8px;
+      z-index: 100;
+      position: relative;
+    }
+
+    #navbar::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 0.5px;
+      background: var(--separator);
+    }
+
+    .nav-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+
+    .nav-date {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--label-3);
+      letter-spacing: 0.02em;
+    }
+
+    #btn-add-nav {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    #btn-add-nav:active {
+      transform: scale(0.92);
+      opacity: 0.85;
+    }
+
+    #btn-add-nav svg {
+      width: 18px;
+      height: 18px;
+      stroke: #fff;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+    }
+
+    .large-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--label);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .title-count {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--label-4);
+      letter-spacing: -0.5px;
+      margin-left: 8px;
+    }
+
+    /* ── Tabs ──────────────────────────────────────────── */
+    /* FIX: Tab bar는 fixed가 아닌 flex child로 배치 + safe area 패딩 */
+    #tab-bar {
+      flex-shrink: 0;
+      background: rgba(242,242,247,0.95);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+      padding-left: calc(var(--safe-left) + 16px);
+      padding-right: calc(var(--safe-right) + 16px);
+      padding-bottom: calc(var(--safe-bottom) + 4px);
+      padding-top: 0;
+      position: relative;
+      z-index: 100;
+    }
+
+    #tab-bar::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 0.5px;
+      background: var(--separator);
+    }
+
+    .tab-inner {
+      display: flex;
+      gap: 4px;
+      padding: 6px 0 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      height: 44px;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.12s ease;
+      position: relative;
+      letter-spacing: -0.1px;
+    }
+
+    .tab-btn .tab-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .tab-btn .tab-badge {
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .tab-btn[data-tab="active"] {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .tab-btn[data-tab="active"] .tab-badge {
+      background: rgba(255,255,255,0.25);
+      color: #fff;
+    }
+
+    .tab-btn[data-tab="active"].selected {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-btn[data-tab="done"] {
+      background: var(--surface);
+      color: var(--label-3);
+    }
+
+    .tab-btn[data-tab="done"] .tab-badge {
+      background: var(--bg);
+      color: var(--label-3);
+    }
+
+    .tab-btn[data-tab="done"].selected {
+      background: var(--success);
+      color: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-btn[data-tab="done"].selected .tab-badge {
+      background: rgba(255,255,255,0.25);
+      color: #fff;
+    }
+
+    .tab-btn:not(.selected) {
+      background: var(--surface);
+      color: var(--label-3);
+      box-shadow: none;
+    }
+
+    .tab-btn:not(.selected) .tab-badge {
+      background: var(--bg);
+      color: var(--label-4);
+    }
+
+    .tab-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* ── Scroll Content ────────────────────────────────── */
+    #content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      padding: 16px calc(var(--safe-right) + 16px) 16px calc(var(--safe-left) + 16px);
+    }
+
+    /* ── Views ─────────────────────────────────────────── */
+    .view {
+      display: none;
+      animation: fadeSlideIn 0.25s ease forwards;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Empty State ───────────────────────────────────── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 32px;
+      text-align: center;
+      gap: 12px;
+    }
+
+    .empty-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+
+    .empty-icon svg {
+      width: 30px;
+      height: 30px;
+    }
+
+    .empty-title {
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--label);
+      letter-spacing: -0.3px;
+    }
+
+    .empty-subtitle {
+      font-size: 14px;
+      color: var(--label-3);
+      line-height: 1.5;
+      max-width: 220px;
+    }
+
+    /* ── Task Card ─────────────────────────────────────── */
+    /*
+      FIX: 카드 테두리 깨짐 해결
+      - 스와이프 삭제 레이어를 카드 "외부"에 위치시키고,
+      - 카드 자체에 overflow:hidden + 명확한 border-radius 적용
+      - 붉은색 테두리는 z-index 충돌 또는 outline 잔재였으므로 완전 제거
+    */
+    .task-wrapper {
+      position: relative;
+      margin-bottom: 10px;
+      border-radius: var(--radius-card);
+      overflow: hidden; /* 스와이프 레이어가 카드 밖으로 새지 않도록 */
+    }
+
+    /* 스와이프 삭제 배경 레이어 (카드 아래에 위치) */
+    .swipe-bg {
+      position: absolute;
+      inset: 0;
+      background: var(--danger);
+      border-radius: var(--radius-card);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 20px;
+      z-index: 0;
+    }
+
+    .swipe-bg-text {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .swipe-bg-text svg {
+      width: 16px;
+      height: 16px;
+      stroke: #fff;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .task-card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-sm);
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: default;
+      /* 스와이프 트랜지션 */
+      transform: translateX(0);
+      transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+                  box-shadow 0.2s ease,
+                  opacity 0.25s ease;
+      /* 중요: 아래 두 속성으로 테두리 완전 제거 */
+      outline: none;
+      border: none;
+    }
+
+    .task-card:active {
+      box-shadow: var(--shadow-md);
+    }
+
+    /* 스와이프 중 카드 이동 */
+    .task-wrapper.swiping .task-card {
+      transition: transform 0.05s linear;
+    }
+
+    /* 삭제 애니메이션 */
+    .task-wrapper.removing {
+      animation: collapseOut 0.35s ease forwards;
+    }
+
+    @keyframes collapseOut {
+      0%   { max-height: 80px; opacity: 1; margin-bottom: 10px; }
+      50%  { max-height: 80px; opacity: 0; margin-bottom: 10px; }
+      100% { max-height: 0;    opacity: 0; margin-bottom: 0; overflow: hidden; }
+    }
+
+    /* 추가 애니메이션 */
+    .task-wrapper.adding {
+      animation: expandIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes expandIn {
+      from { transform: scale(0.94); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+
+    /* ── Checkbox ──────────────────────────────────────── */
+    .task-checkbox {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid var(--separator);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      margin-top: 1px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .task-checkbox:active {
+      transform: scale(0.88);
+    }
+
+    .task-checkbox svg {
+      opacity: 0;
+      transform: scale(0.6);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    /* 완료 상태 체크박스 */
+    .task-card.done .task-checkbox {
+      border-color: var(--success);
+      background: var(--success);
+    }
+
+    .task-card.done .task-checkbox svg {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ── Task Content ──────────────────────────────────── */
+    .task-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--label);
+      line-height: 1.4;
+      letter-spacing: -0.2px;
+      transition: color 0.2s;
+      word-break: break-word;
+    }
+
+    .task-card.done .task-title {
+      color: var(--label-4);
+      text-decoration: line-through;
+      text-decoration-color: var(--label-4);
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .task-date {
+      font-size: 12px;
+      color: var(--label-4);
+    }
+
+    .task-priority {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+
+    .priority-high   { background: #FFEBE9; color: #C00; }
+    .priority-medium { background: #FFF3DC; color: #AA5500; }
+    .priority-low    { background: #E3F5EA; color: #1A7A35; }
+
+    /* ── Undo button ───────────────────────────────────── */
+    .task-undo-btn {
+      flex-shrink: 0;
+      border: none;
+      background: var(--bg);
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.12s;
+      margin-top: 0;
+      align-self: center;
+    }
+
+    .task-undo-btn:active {
+      background: var(--primary-light);
+      transform: scale(0.95);
+    }
+
+    /* ── Input Sheet (Add Task) ────────────────────────── */
+    #sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+      -webkit-backdrop-filter: blur(2px);
+      backdrop-filter: blur(2px);
+    }
+
+    #sheet-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    #input-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      padding: 0 20px;
+      /* safe area 반영 */
+      padding-bottom: calc(var(--safe-bottom) + 20px);
+      z-index: 201;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      box-shadow: 0 -4px 30px rgba(0,0,0,0.12);
+    }
+
+    #input-sheet.open {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--separator);
+      border-radius: 2px;
+      margin: 12px auto 16px;
+    }
+
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--label);
+      margin-bottom: 16px;
+      letter-spacing: -0.2px;
+    }
+
+    #task-input {
+      width: 100%;
+      height: 50px;
+      background: var(--bg);
+      border: none;
+      outline: none;
+      border-radius: var(--radius-btn);
+      padding: 0 16px;
+      font-size: 16px;
+      color: var(--label);
+      font-family: inherit;
+      caret-color: var(--primary);
+      transition: background 0.15s;
+    }
+
+    #task-input:focus {
+      background: #EAEAF0;
+    }
+
+    #task-input::placeholder {
+      color: var(--label-4);
+    }
+
+    /* 우선순위 선택 */
+    .priority-picker {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .priority-option {
+      flex: 1;
+      height: 38px;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.12s;
+      background: var(--bg);
+      color: var(--label-3);
+    }
+
+    .priority-option:active { transform: scale(0.95); }
+
+    .priority-option[data-priority="high"].selected   { background: #FFEBE9; color: #C00; border-color: #FF3B30; }
+    .priority-option[data-priority="medium"].selected { background: #FFF3DC; color: #AA5500; border-color: #FF9500; }
+    .priority-option[data-priority="low"].selected    { background: #E3F5EA; color: #1A7A35; border-color: #34C759; }
+
+    #btn-submit {
+      width: 100%;
+      height: 52px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 14px;
+      letter-spacing: -0.2px;
+      transition: background 0.15s, transform 0.12s, opacity 0.15s;
+    }
+
+    #btn-submit:active {
+      background: #0062CC;
+      transform: scale(0.98);
+    }
+
+    #btn-submit:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    /* ── Progress Bar ──────────────────────────────────── */
+    .progress-bar-wrap {
+      margin-bottom: 16px;
+      background: var(--surface);
+      border-radius: var(--radius-card);
+      padding: 14px 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+
+    .progress-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--label-2);
+    }
+
+    .progress-pct {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+
+    .progress-track {
+      height: 6px;
+      background: var(--bg);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #34AADC);
+      border-radius: 3px;
+      transition: width 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* ── Scrollbar hidden ──────────────────────────────── */
+    #content::-webkit-scrollbar { display: none; }
+    #content { scrollbar-width: none; }
+
+    /* ── Section Header ────────────────────────────────── */
+    .section-header {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--label-3);
+      padding: 4px 4px 8px;
+    }
+  </style>
 </head>
-<body>
-    <div class="app-container">
-        <header class="gnb">
-            <div class="gnb-content">
-                <div class="gnb-title">ToDo</div>
-                <div class="date-text">2026. 5. 4.</div>
-            </div>
-        </header>
-        
-        <main class="content">
-            <div id="todoView">
-                <div class="input-group">
-                    <input type="text" id="todoInput" placeholder="새로운 할 일">
-                    <button class="add-btn" onclick="addTodo()">+</button>
-                </div>
-                <ul id="activeList"></ul>
-            </div>
-            <div id="doneView" style="display:none; padding-top:20px;">
-                <ul id="doneList"></ul>
-            </div>
-        </main>
 
-        <nav class="nav-bar">
-            <div class="nav-item active" id="todoTab" onclick="goTab('todo')">
-                <span class="nav-icon">◯</span><span>진행중</span>
-            </div>
-            <div class="nav-item" id="doneTab" onclick="goTab('done')">
-                <span class="nav-icon">●</span><span>완료됨</span>
-            </div>
-        </nav>
+<body>
+<div id="app">
+
+  <!-- Navigation Bar -->
+  <div id="navbar">
+    <div class="nav-top">
+      <span class="nav-date" id="nav-date"></span>
+      <button id="btn-add-nav" aria-label="할 일 추가">
+        <svg viewBox="0 0 24 24" fill="none">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      </button>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:0;">
+      <span class="large-title">오늘의 할 일</span>
+      <span class="title-count" id="active-count-title"></span>
+    </div>
+  </div>
+
+  <!-- Scroll Content Area -->
+  <div id="content">
+
+    <!-- Progress -->
+    <div class="progress-bar-wrap" id="progress-block">
+      <div class="progress-header">
+        <span class="progress-label">오늘의 진행률</span>
+        <span class="progress-pct" id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
     </div>
 
-    <script>
-        let db = JSON.parse(localStorage.getItem('todo_vfinal')) || { a: [], d: [] };
-        function save() { localStorage.setItem('todo_vfinal', JSON.stringify(db)); }
+    <!-- Active Tasks View -->
+    <div class="view active" id="view-active">
+      <div id="list-active"></div>
+    </div>
 
-        function render() {
-            const aList = document.getElementById('activeList');
-            const dList = document.getElementById('doneList');
-            aList.innerHTML = db.a.length === 0 ? `<div style="text-align:center; padding-top:100px; color:#ccc;">할 일이 없습니다.</div>` : "";
-            dList.innerHTML = "";
+    <!-- Done Tasks View -->
+    <div class="view" id="view-done">
+      <div id="list-done"></div>
+    </div>
 
-            db.a.forEach((t, i) => {
-                const li = document.createElement('li'); li.className = 'list-item';
-                li.innerHTML = `<div class="checkbox" onclick="check(${i})"></div><span class="item-text">${t}</span>`;
-                aList.appendChild(li);
-            });
-            db.d.forEach((t, i) => {
-                const li = document.createElement('li'); li.className = 'list-item';
-                li.innerHTML = `<div class="checkbox checked" onclick="uncheck(${i})"></div><span class="item-text done">${t}</span>`;
-                dList.appendChild(li);
-            });
+  </div>
+
+  <!-- Tab Bar -->
+  <!-- FIX: flex child로 배치 + safe-area-inset-bottom 패딩 -->
+  <div id="tab-bar">
+    <div class="tab-inner">
+      <button class="tab-btn selected" data-tab="active" id="tab-active">
+        <span class="tab-label">
+          진행 중
+          <span class="tab-badge" id="badge-active">0</span>
+        </span>
+      </button>
+      <button class="tab-btn" data-tab="done" id="tab-done">
+        <span class="tab-label">
+          완료됨
+          <span class="tab-badge" id="badge-done">0</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Sheet Overlay -->
+<div id="sheet-overlay" id="overlay"></div>
+
+<!-- Input Sheet -->
+<div id="input-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">새 할 일 추가</div>
+  <input type="text" id="task-input" placeholder="무엇을 해야 하나요?" maxlength="80" autocomplete="off" autocorrect="off" />
+  <div class="priority-picker">
+    <button class="priority-option selected" data-priority="low">낮음</button>
+    <button class="priority-option" data-priority="medium">보통</button>
+    <button class="priority-option" data-priority="high">높음</button>
+  </div>
+  <button id="btn-submit" disabled>추가하기</button>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── State ─────────────────────────────────────────── */
+  const STORAGE_KEY = 'todo_tasks_v2';
+  let tasks = [];
+  let currentTab = 'active';
+  let selectedPriority = 'low';
+  let swipeState = null; // { wrapper, card, startX, currentX }
+
+  /* ── Helpers ────────────────────────────────────────── */
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  function formatDate() {
+    const now = new Date();
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return `${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
+  }
+
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); } catch(e) {}
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) tasks = JSON.parse(raw);
+    } catch(e) { tasks = []; }
+  }
+
+  /* ── DOM Refs ───────────────────────────────────────── */
+  const navDate        = document.getElementById('nav-date');
+  const activeTitleCnt = document.getElementById('active-count-title');
+  const listActive     = document.getElementById('list-active');
+  const listDone       = document.getElementById('list-done');
+  const tabActive      = document.getElementById('tab-active');
+  const tabDone        = document.getElementById('tab-done');
+  const badgeActive    = document.getElementById('badge-active');
+  const badgeDone      = document.getElementById('badge-done');
+  const progressPct    = document.getElementById('progress-pct');
+  const progressFill   = document.getElementById('progress-fill');
+  const progressBlock  = document.getElementById('progress-block');
+  const viewActive     = document.getElementById('view-active');
+  const viewDone       = document.getElementById('view-done');
+  const btnAddNav      = document.getElementById('btn-add-nav');
+  const sheetOverlay   = document.getElementById('sheet-overlay');
+  const inputSheet     = document.getElementById('input-sheet');
+  const taskInput      = document.getElementById('task-input');
+  const btnSubmit      = document.getElementById('btn-submit');
+  const priorityOpts   = document.querySelectorAll('.priority-option');
+
+  /* ── Render ─────────────────────────────────────────── */
+  function createCardHTML(task) {
+    const priorityLabels = { high: '높음', medium: '보통', low: '낮음' };
+    const priorityClasses = { high: 'priority-high', medium: 'priority-medium', low: 'priority-low' };
+    const isDone = task.done;
+
+    const checkSVG = `
+      <svg viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+        <polyline points="2,7 5.5,10.5 12,4"/>
+      </svg>`;
+
+    const undoBtn = isDone
+      ? `<button class="task-undo-btn" data-action="undo" data-id="${task.id}">되돌리기</button>`
+      : '';
+
+    return `
+      <div class="task-wrapper${isDone ? '' : ''}" data-id="${task.id}">
+        <div class="swipe-bg">
+          <span class="swipe-bg-text">
+            <svg viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14H6L5,6"/><path d="M10,11v6M14,11v6"/><path d="M9,6V4h6v2"/></svg>
+            삭제
+          </span>
+        </div>
+        <div class="task-card${isDone ? ' done' : ''}" data-id="${task.id}">
+          <div class="task-checkbox" data-action="${isDone ? 'undo' : 'complete'}" data-id="${task.id}">
+            ${checkSVG}
+          </div>
+          <div class="task-content">
+            <div class="task-title">${escapeHTML(task.text)}</div>
+            <div class="task-meta">
+              <span class="task-date">${task.dateStr}</span>
+              <span class="task-priority ${priorityClasses[task.priority] || ''}">${priorityLabels[task.priority] || ''}</span>
+            </div>
+          </div>
+          ${undoBtn}
+        </div>
+      </div>`;
+  }
+
+  function escapeHTML(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function emptyActiveHTML() {
+    return `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="15" cy="15" r="11" stroke="#007AFF" stroke-width="2.2"/>
+            <polyline points="10,15 13.5,18.5 20,11" stroke="#007AFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="empty-title">모두 완료했어요!</div>
+        <div class="empty-subtitle">오늘의 할 일을 모두 마쳤습니다.<br>새로운 목표를 추가해 보세요.</div>
+      </div>`;
+  }
+
+  function emptyDoneHTML() {
+    return `
+      <div class="empty-state">
+        <div class="empty-icon" style="background:#E3F5EA;">
+          <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="15" cy="15" r="11" stroke="#34C759" stroke-width="2.2"/>
+            <line x1="10" y1="15" x2="20" y2="15" stroke="#34C759" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="empty-title">완료된 항목 없음</div>
+        <div class="empty-subtitle">할 일을 완료하면 여기에<br>모아서 볼 수 있어요.</div>
+      </div>`;
+  }
+
+  function render() {
+    const active = tasks.filter(t => !t.done);
+    const done   = tasks.filter(t => t.done);
+    const total  = tasks.length;
+    const pct    = total === 0 ? 0 : Math.round((done.length / total) * 100);
+
+    // badges
+    badgeActive.textContent = active.length;
+    badgeDone.textContent   = done.length;
+    activeTitleCnt.textContent = active.length > 0 ? ` ${active.length}` : '';
+
+    // progress
+    progressPct.textContent = pct + '%';
+    progressFill.style.width = pct + '%';
+    progressBlock.style.display = total === 0 ? 'none' : '';
+
+    // lists
+    listActive.innerHTML = active.length === 0
+      ? emptyActiveHTML()
+      : active.map(createCardHTML).join('');
+
+    listDone.innerHTML = done.length === 0
+      ? emptyDoneHTML()
+      : done.map(createCardHTML).join('');
+
+    // attach swipe after render
+    attachSwipeListeners();
+  }
+
+  /* ── FIX: Tab Switch ─────────────────────────────────── */
+  function switchTab(tab) {
+    currentTab = tab;
+
+    // 탭 버튼 상태
+    [tabActive, tabDone].forEach(btn => btn.classList.remove('selected'));
+    (tab === 'active' ? tabActive : tabDone).classList.add('selected');
+
+    // 뷰 전환
+    viewActive.classList.remove('active');
+    viewDone.classList.remove('active');
+
+    if (tab === 'active') {
+      viewActive.classList.add('active');
+    } else {
+      viewDone.classList.add('active');
+    }
+  }
+
+  /* ── FIX: Complete / Undo via Event Delegation ─────────── */
+  document.getElementById('content').addEventListener('click', function(e) {
+    // checkbox 또는 undo 버튼 클릭 탐지
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+
+    const action = target.dataset.action;
+    const id     = target.dataset.id;
+
+    if (action === 'complete') {
+      completeTask(id);
+    } else if (action === 'undo') {
+      undoTask(id);
+    }
+  });
+
+  function completeTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task || task.done) return;
+    task.done = true;
+    save();
+    render();
+    // 완료 후 완료 탭으로 안내 (선택)
+    // switchTab('done');
+  }
+
+  function undoTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task || !task.done) return;
+    task.done = false;
+    save();
+    render();
+  }
+
+  /* ── Tab Button Events ──────────────────────────────── */
+  tabActive.addEventListener('click', () => switchTab('active'));
+  tabDone.addEventListener('click',   () => switchTab('done'));
+
+  /* ── Swipe to Delete ────────────────────────────────── */
+  const SWIPE_THRESHOLD = 80;
+
+  function attachSwipeListeners() {
+    const wrappers = document.querySelectorAll('.task-wrapper');
+    wrappers.forEach(wrapper => {
+      const card = wrapper.querySelector('.task-card');
+      if (!card) return;
+
+      let startX = 0, startY = 0, isSwiping = false;
+
+      card.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isSwiping = false;
+        wrapper.classList.remove('swiping');
+      }, { passive: true });
+
+      card.addEventListener('touchmove', function(e) {
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+
+        // 세로 스크롤이면 무시
+        if (!isSwiping && Math.abs(dy) > Math.abs(dx)) return;
+
+        // 왼쪽 스와이프만
+        if (dx < -5) {
+          isSwiping = true;
+          wrapper.classList.add('swiping');
+          e.preventDefault();
+          const clamped = Math.max(dx, -SWIPE_THRESHOLD * 1.8);
+          card.style.transform = `translateX(${clamped}px)`;
         }
+      }, { passive: false });
 
-        function addTodo() {
-            const input = document.getElementById('todoInput');
-            if(!input.value.trim()) return;
-            db.a.push(input.value); input.value = '';
-            save(); render();
+      card.addEventListener('touchend', function() {
+        if (!isSwiping) return;
+        wrapper.classList.remove('swiping');
+
+        const currentX = parseFloat(card.style.transform.replace('translateX(', '') || '0');
+        if (currentX < -SWIPE_THRESHOLD) {
+          deleteTaskByWrapper(wrapper);
+        } else {
+          card.style.transform = 'translateX(0)';
         }
+      });
+    });
+  }
 
-        function check(i) { let item = db.a.splice(i, 1); db.d.push(item[0]); save(); render(); }
-        function uncheck(i) { let item = db.d.splice(i, 1); db.a.push(item[0]); save(); render(); }
+  function deleteTaskByWrapper(wrapper) {
+    const id = wrapper.dataset.id;
+    wrapper.classList.add('removing');
+    setTimeout(() => {
+      tasks = tasks.filter(t => t.id !== id);
+      save();
+      render();
+    }, 350);
+  }
 
-        function goTab(mode) {
-            document.getElementById('todoView').style.display = mode === 'todo' ? 'block' : 'none';
-            document.getElementById('doneView').style.display = mode === 'done' ? 'block' : 'none';
-            document.getElementById('todoTab').classList.toggle('active', mode === 'todo');
-            document.getElementById('doneTab').classList.toggle('active', mode === 'done');
-        }
+  /* ── Input Sheet ────────────────────────────────────── */
+  function openSheet() {
+    sheetOverlay.classList.add('open');
+    inputSheet.classList.add('open');
+    setTimeout(() => taskInput.focus(), 350);
+  }
 
-        render();
-    </script>
+  function closeSheet() {
+    sheetOverlay.classList.remove('open');
+    inputSheet.classList.remove('open');
+    taskInput.blur();
+    taskInput.value = '';
+    btnSubmit.disabled = true;
+    // reset priority
+    selectedPriority = 'low';
+    priorityOpts.forEach(o => {
+      o.classList.toggle('selected', o.dataset.priority === 'low');
+    });
+  }
+
+  btnAddNav.addEventListener('click', openSheet);
+  sheetOverlay.addEventListener('click', closeSheet);
+
+  taskInput.addEventListener('input', function() {
+    btnSubmit.disabled = this.value.trim().length === 0;
+  });
+
+  taskInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !btnSubmit.disabled) addTask();
+  });
+
+  priorityOpts.forEach(opt => {
+    opt.addEventListener('click', function() {
+      selectedPriority = this.dataset.priority;
+      priorityOpts.forEach(o => o.classList.remove('selected'));
+      this.classList.add('selected');
+    });
+  });
+
+  btnSubmit.addEventListener('click', addTask);
+
+  function addTask() {
+    const text = taskInput.value.trim();
+    if (!text) return;
+
+    const newTask = {
+      id:       uid(),
+      text:     text,
+      done:     false,
+      priority: selectedPriority,
+      dateStr:  formatDate(),
+      createdAt: Date.now()
+    };
+
+    tasks.unshift(newTask);
+    save();
+    closeSheet();
+    switchTab('active');
+    render();
+
+    // adding animation on first card
+    requestAnimationFrame(() => {
+      const firstWrapper = listActive.querySelector('.task-wrapper');
+      if (firstWrapper) {
+        firstWrapper.classList.add('adding');
+        setTimeout(() => firstWrapper.classList.remove('adding'), 350);
+      }
+    });
+  }
+
+  /* ── Init ───────────────────────────────────────────── */
+  function init() {
+    navDate.textContent = formatDate();
+    load();
+    render();
+    switchTab('active');
+  }
+
+  init();
+
+})();
+</script>
+
 </body>
 </html>
