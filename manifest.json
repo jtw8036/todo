@@ -1,6 +1,6 @@
 {
-  "name": "Vibe Todo App",
-  "short_name": "VibeTodo",
+  "name": "ToDo",
+  "short_name": "ToDo",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
