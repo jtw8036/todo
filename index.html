@@ -47,15 +47,15 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* 화면 자체를 고정 (바운스 스크롤 차단 및 하단 틈새 원천 제거) */
+    /* [CTO 수정] 디자이너님의 flex + fill-available 구조 완벽 반영 */
     html, body {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      margin: 0; padding: 0;
       width: 100%; 
-      height: 100%;
+      height: 100dvh;
+      min-height: -webkit-fill-available;
       overflow: hidden;
-      overscroll-behavior: none;
-      touch-action: none;
+      overscroll-behavior-y: none; /* 고무줄 바운스 원천 차단 */
+      touch-action: none; 
       font-family: 'Noto Sans KR', -apple-system, sans-serif;
       background: var(--bg);
       color: var(--label);
@@ -66,8 +66,8 @@
       display: flex;
       flex-direction: column;
       width: 100%;
-      height: 100%;
-      min-height: 0;
+      height: 100dvh;
+      min-height: -webkit-fill-available;
       overflow: hidden;
     }
 
@@ -139,7 +139,14 @@
       will-change: width;
     }
 
-    /* ── [신규] 주간 캘린더 (Weekly Strip) ── */
+    /* ── 주간 캘린더 (Weekly Strip) ── */
+    .date-header-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 4px 12px;
+    }
+    
     #date-display-btn {
       background: none;
       border: none;
@@ -155,6 +162,22 @@
       color: var(--label);
       letter-spacing: -0.3px;
     }
+
+    .today-pin-btn {
+      background: rgba(120,120,128,0.12);
+      border: none;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--label2);
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .today-pin-btn:active {
+      background: rgba(120,120,128,0.2);
+    }
+
     .weekly-strip {
       display: flex;
       justify-content: space-between;
@@ -166,7 +189,7 @@
       align-items: center;
       gap: 8px;
       cursor: pointer;
-      width: 14%; /* 가로 여백 균등 분할 */
+      width: 14%; 
     }
     .week-day-name {
       font-size: 12px;
@@ -240,7 +263,7 @@
     ──────────────────────────────────────── */
     #content {
       flex: 1;
-      min-height: 0; 
+      min-height: 0; /* flex 자식 오버플로우 버그 방지 (핵심) */
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
@@ -583,8 +606,8 @@
       color: var(--label3);
       padding: 4px 0;
     }
-    .cal-day-name:first-child { color: var(--danger); }
-    .cal-day-name:last-child { color: var(--accent); }
+    .cal-day-name.sun { color: var(--danger); }
+    .cal-day-name.sat { color: var(--accent); }
 
     .cal-grid {
       display: grid;
@@ -654,12 +677,13 @@
       </div>
     </div>
 
-    <!-- 주간 단위 날짜 뷰 -->
-    <div id="date-header-row" style="display:flex; align-items:center; justify-content:space-between; padding: 4px 4px 12px;">
+    <!-- 주간 단위 날짜 뷰 및 오늘 버튼 -->
+    <div class="date-header-wrapper">
       <button id="date-display-btn" aria-label="날짜 선택">
         <span id="date-label-main">오늘</span>
         <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--label3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
+      <button class="today-pin-btn" onclick="goToToday()">오늘</button>
     </div>
     
     <div id="weekly-strip" class="weekly-strip"></div>
@@ -734,13 +758,13 @@
       </div>
     </div>
     <div class="cal-days-header">
-      <div class="cal-day-name">일</div>
       <div class="cal-day-name">월</div>
       <div class="cal-day-name">화</div>
       <div class="cal-day-name">수</div>
       <div class="cal-day-name">목</div>
       <div class="cal-day-name">금</div>
-      <div class="cal-day-name">토</div>
+      <div class="cal-day-name sat">토</div>
+      <div class="cal-day-name sun">일</div>
     </div>
     <div class="cal-grid" id="cal-grid"></div>
   </div>
@@ -1006,7 +1030,7 @@ function setupSwipe(wrapper, card, id) {
 }
 
 /* ════════════════════════════════════════
-   [신규] 탭 스와이프 이동 (Global Swipe Handler)
+   가로 스와이프 탭 이동
 ════════════════════════════════════════ */
 let globalSwipeStartX = 0;
 let globalSwipeStartY = 0;
@@ -1020,17 +1044,14 @@ $('content').addEventListener('touchend', e => {
   let diffX = e.changedTouches[0].clientX - globalSwipeStartX;
   let diffY = e.changedTouches[0].clientY - globalSwipeStartY;
 
-  // 가로 스와이프 판단 (세로 이동보다 가로 이동이 크고, 일정 임계치를 넘었을 때)
   if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 60) {
-    // 카드 위에서 왼쪽으로 스와이프한 경우(삭제 동작)는 탭 이동 무시
     if (e.target.closest('.task-card') && diffX < 0) {
       return; 
     }
-
     if (diffX < -60 && currentTab === 'active') {
-      switchTab('done'); // 왼쪽으로 밀면 '완료됨' 탭으로
+      switchTab('done'); 
     } else if (diffX > 60 && currentTab === 'done') {
-      switchTab('active'); // 오른쪽으로 밀면 '진행 중' 탭으로
+      switchTab('active'); 
     }
   }
 }, { passive: true });
@@ -1099,8 +1120,14 @@ $('todo-input').addEventListener('keydown', e => {
 });
 
 /* ════════════════════════════════════════
-   [신규] 주간 날짜 뷰 업데이트 (Weekly Strip)
+   날짜 로직 (월요일 시작)
 ════════════════════════════════════════ */
+function goToToday() {
+  currentDate = today();
+  updateWeeklyView();
+  render();
+}
+
 function updateWeeklyView() {
   const d = new Date(currentDate + 'T00:00:00');
   $('date-label-main').textContent = `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
@@ -1108,11 +1135,13 @@ function updateWeeklyView() {
   const strip = $('weekly-strip');
   strip.innerHTML = '';
 
-  const dayOfWeek = d.getDay();
-  const startOfWeek = new Date(d);
-  startOfWeek.setDate(d.getDate() - dayOfWeek);
+  let dayOfWeek = d.getDay(); // 0(Sun) ~ 6(Sat)
+  let diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 월요일 기준 인덱스로 변환
 
-  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  const startOfWeek = new Date(d);
+  startOfWeek.setDate(d.getDate() - diff);
+
+  const days = ['월', '화', '수', '목', '금', '토', '일'];
 
   for(let i=0; i<7; i++) {
     const tempD = new Date(startOfWeek);
@@ -1124,7 +1153,7 @@ function updateWeeklyView() {
     if (dStr === currentDate) dayEl.classList.add('selected');
     if (dStr === today()) dayEl.classList.add('today');
 
-    const dayClass = i === 0 ? ' sun' : (i === 6 ? ' sat' : '');
+    const dayClass = i === 6 ? ' sun' : (i === 5 ? ' sat' : '');
     dayEl.innerHTML = `
       <span class="week-day-name${dayClass}">${days[i]}</span>
       <span class="week-day-num">${tempD.getDate()}</span>
@@ -1157,7 +1186,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 /* ════════════════════════════════════════
-   캘린더 시트 (전체 달력 보기)
+   캘린더 시트 (월요일 시작)
 ════════════════════════════════════════ */
 function openCalendar() {
   const d = new Date(currentDate + 'T00:00:00');
@@ -1185,17 +1214,21 @@ function renderCalendar() {
   const storedDates = getAllStoredDates();
   const todayStr = today();
 
-  const firstDay  = new Date(calViewYear, calViewMonth, 1).getDay();
+  const firstDay  = new Date(calViewYear, calViewMonth, 1).getDay(); // 0(Sun) ~ 6(Sat)
   const daysInMonth = new Date(calViewYear, calViewMonth+1, 0).getDate();
   const prevDays   = new Date(calViewYear, calViewMonth, 0).getDate();
 
-  for (let i = firstDay - 1; i >= 0; i--) {
+  const firstDayGridIndex = firstDay === 0 ? 6 : firstDay - 1; // 월요일(0) ~ 일요일(6)
+
+  // 이전 달 날짜 채우기
+  for (let i = firstDayGridIndex - 1; i >= 0; i--) {
     const cell = document.createElement('div');
     cell.className = 'cal-cell other-month';
     cell.textContent = prevDays - i;
     grid.appendChild(cell);
   }
 
+  // 이번 달 날짜 채우기
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${calViewYear}-${String(calViewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const cell = document.createElement('div');
@@ -1218,7 +1251,8 @@ function renderCalendar() {
     grid.appendChild(cell);
   }
 
-  const total = firstDay + daysInMonth;
+  // 다음 달 날짜 채우기
+  const total = firstDayGridIndex + daysInMonth;
   const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
   for (let d = 1; d <= remaining; d++) {
     const cell = document.createElement('div');
