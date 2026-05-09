@@ -7,6 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="할 일" />
+  
+  <!-- 👇 홈 화면 앱 아이콘 적용 태그 (이 두 줄만 추가되었습니다) 👇 -->
+  <link rel="icon" type="image/png" href="icon.png" />
+  <link rel="apple-touch-icon" href="icon.png" />
+
   <title>할 일</title>
 
   <style>
@@ -47,7 +52,7 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* [디자이너님 원본 레이아웃 절대 보존] */
+    /* 사파리 뷰포트 버그 방지 및 바운스 차단 */
     html, body {
       margin: 0; padding: 0;
       width: 100%; 
@@ -62,6 +67,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* flex column 레이아웃 적용 */
     #app {
       display: flex;
       flex-direction: column;
@@ -181,7 +187,7 @@
     .weekly-strip {
       display: flex;
       justify-content: space-between;
-      padding: 0 4px 16px; /* 닷 인디케이터 공간을 위해 하단 패딩 약간 증가 */
+      padding: 0 4px 16px; 
     }
     .week-day {
       display: flex;
@@ -190,7 +196,7 @@
       gap: 8px;
       cursor: pointer;
       width: 14%; 
-      position: relative; /* 닷 포지셔닝용 */
+      position: relative; 
     }
     .week-day-name {
       font-size: 12px;
@@ -220,7 +226,6 @@
       color: #ffffff !important;
     }
 
-    /* 진행중 할 일 인디케이터 (주간 달력용) */
     .has-todo-dot {
       position: absolute;
       bottom: -6px;
@@ -395,7 +400,6 @@
       margin: 0;
     }
 
-    /* 카드 액션 버튼 (미루기 / 되돌리기 통합 스타일) */
     .card-text-btn {
       font-size: 12px;
       font-weight: 500;
@@ -538,7 +542,7 @@
     .modal-btn.delete { color: var(--danger); font-weight: 600; }
 
     /* ────────────────────────────────────────
-       날짜 캘린더 시트 (모달용)
+       날짜 캘린더 시트 (이동 및 미루기 공용)
     ──────────────────────────────────────── */
     #calendar-sheet {
       position: fixed;
@@ -585,7 +589,6 @@
       justify-content: space-between;
       margin-bottom: 16px;
     }
-    
     .sheet-month-label {
       font-size: 17px;
       font-weight: 600;
@@ -647,7 +650,6 @@
       font-weight: 600 !important;
     }
     
-    /* 진행중 할 일 인디케이터 (월간 달력용) */
     .cal-cell.has-todo::after {
       content: '';
       display: block;
@@ -756,7 +758,7 @@
   </div>
 </div>
 
-<!-- ──────── 캘린더 시트 (이동/미루기 공용) ──────── -->
+<!-- ──────── 캘린더 시트 ──────── -->
 <div id="calendar-sheet" role="dialog" aria-modal="true" aria-label="날짜 선택">
   <div class="sheet-backdrop" id="sheet-backdrop"></div>
   <div class="sheet-panel">
@@ -917,7 +919,6 @@ function makeCard(todo, idx, isDone) {
     ? `<span class="task-text">${escHtml(todo.text)}</span>` 
     : `<span class="task-text" id="text-${todo.id}" onclick="startEdit('${todo.id}')">${escHtml(todo.text)}</span>`;
 
-  // [CTO] 완료 상태면 '되돌리기', 진행 중이면 '미루기' 버튼 렌더링
   const actionBtn = isDone
     ? `<button class="card-text-btn" data-action="undo" data-id="${todo.id}">되돌리기</button>`
     : `<button class="card-text-btn" data-action="postpone" data-id="${todo.id}">미루기</button>`;
@@ -1017,7 +1018,7 @@ function executeDelete() {
     deleteTodo(deleteTargetId);
   }
   closeDeleteModal();
-  updateWeeklyView(); // 삭제 후 닷(dot) 갱신
+  updateWeeklyView(); 
 }
 
 /* ════════════════════════════════════════
@@ -1090,7 +1091,7 @@ $('content').addEventListener('click', e => {
   const id = btn.dataset.id;
   if (action === 'complete') completeTodo(id);
   if (action === 'undo')     undoTodo(id);
-  if (action === 'postpone') openCalendar(true, id); // 미루기 액션 추가
+  if (action === 'postpone') openCalendar(true, id); 
 });
 
 /* ════════════════════════════════════════
@@ -1102,7 +1103,7 @@ function addTodo(text) {
   const todos = loadTodos(currentDate);
   todos.push({ id: Date.now().toString(), text: t, done: false, createdAt: Date.now() });
   saveTodos(currentDate, todos);
-  updateWeeklyView(); // 닷(dot) 갱신
+  updateWeeklyView(); 
   render();
 }
 
@@ -1111,7 +1112,7 @@ function completeTodo(id) {
   const item = todos.find(t => t.id === id);
   if (item) { item.done = true; item.doneAt = Date.now(); }
   saveTodos(currentDate, todos);
-  updateWeeklyView(); // 닷(dot) 갱신
+  updateWeeklyView(); 
   render();
 }
 
@@ -1120,14 +1121,14 @@ function undoTodo(id) {
   const item = todos.find(t => t.id === id);
   if (item) { item.done = false; delete item.doneAt; }
   saveTodos(currentDate, todos);
-  updateWeeklyView(); // 닷(dot) 갱신
+  updateWeeklyView(); 
   render();
 }
 
 function deleteTodo(id) {
   const todos = loadTodos(currentDate).filter(t => t.id !== id);
   saveTodos(currentDate, todos);
-  updateWeeklyView(); // 닷(dot) 갱신
+  updateWeeklyView(); 
   render();
 }
 
@@ -1149,7 +1150,7 @@ $('todo-input').addEventListener('keydown', e => {
 });
 
 /* ════════════════════════════════════════
-   날짜 로직 (월요일 시작 & 오늘 복귀 & 닷 인디케이터)
+   날짜 로직 
 ════════════════════════════════════════ */
 function goToToday() {
   currentDate = today();
@@ -1184,7 +1185,6 @@ function updateWeeklyView() {
 
     const dayClass = i === 6 ? ' sun' : (i === 5 ? ' sat' : '');
     
-    // 진행 중인 할 일이 있는지 검사하여 닷(dot) 표시
     const todosForDay = loadTodos(dStr);
     const hasActiveTodo = todosForDay.some(t => !t.done);
 
@@ -1221,7 +1221,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 /* ════════════════════════════════════════
-   캘린더 시트 (이동 및 미루기 공용, 월요일 시작)
+   캘린더 시트
 ════════════════════════════════════════ */
 let postponeTargetId = null;
 
@@ -1243,7 +1243,7 @@ function closeCalendar() {
   sheet.classList.remove('open');
   setTimeout(() => { 
     sheet.style.display = 'none'; 
-    postponeTargetId = null; // 취소 대비 초기화
+    postponeTargetId = null; 
     $('sheet-title').style.display = 'none';
   }, 350);
 }
@@ -1258,11 +1258,11 @@ function renderCalendar() {
   const storedDates = getAllStoredDates();
   const todayStr = today();
 
-  const firstDay  = new Date(calViewYear, calViewMonth, 1).getDay(); // 0(Sun) ~ 6(Sat)
+  const firstDay  = new Date(calViewYear, calViewMonth, 1).getDay(); 
   const daysInMonth = new Date(calViewYear, calViewMonth+1, 0).getDate();
   const prevDays   = new Date(calViewYear, calViewMonth, 0).getDate();
 
-  const firstDayGridIndex = firstDay === 0 ? 6 : firstDay - 1; // 월요일(0) ~ 일요일(6)
+  const firstDayGridIndex = firstDay === 0 ? 6 : firstDay - 1; 
 
   // 이전 달 날짜 채우기
   for (let i = firstDayGridIndex - 1; i >= 0; i--) {
@@ -1282,24 +1282,20 @@ function renderCalendar() {
     if (dateStr === todayStr) cell.classList.add('today');
     if (dateStr === currentDate) cell.classList.add('selected');
     
-    // 달력에도 진행 중인 할 일이 있는 날 표시
     if (storedDates.includes(dateStr)) {
       const todos = loadTodos(dateStr);
       if (todos.some(t => !t.done)) cell.classList.add('has-todo');
     }
 
     cell.addEventListener('click', () => {
-      // 미루기 모드일 경우 처리
       if (postponeTargetId) {
         if (dateStr !== currentDate) {
           const currentTodos = loadTodos(currentDate);
           const itemIndex = currentTodos.findIndex(t => t.id === postponeTargetId);
           if (itemIndex > -1) {
-            // 현재 날짜에서 제거
             const item = currentTodos.splice(itemIndex, 1)[0];
             saveTodos(currentDate, currentTodos);
 
-            // 선택한 날짜로 이동
             const targetTodos = loadTodos(dateStr);
             targetTodos.push(item);
             saveTodos(dateStr, targetTodos);
@@ -1310,7 +1306,6 @@ function renderCalendar() {
         updateWeeklyView();
         render();
       } 
-      // 일반 이동 모드일 경우 처리
       else {
         currentDate = dateStr;
         updateWeeklyView();
