@@ -47,24 +47,28 @@
       -webkit-text-size-adjust: 100%;
     }
 
+    /* [디자이너님 지시 레이아웃 원상 복구] fill-available 뼈대 */
     html, body {
       margin: 0; padding: 0;
-      width: 100%; height: 100%;
+      width: 100%; 
+      height: 100vh;
+      min-height: -webkit-fill-available;
       overflow: hidden;
-      overscroll-behavior: none;
+      overscroll-behavior-y: none;
       touch-action: none;
       font-family: 'Noto Sans KR', -apple-system, sans-serif;
-      background: var(--surface);
+      background: var(--bg);
       color: var(--label);
       -webkit-font-smoothing: antialiased;
     }
 
+    /* [디자이너님 지시 레이아웃 원상 복구] flex column */
     #app {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
       display: flex;
       flex-direction: column;
-      background: var(--bg);
+      width: 100%;
+      height: 100vh;
+      min-height: -webkit-fill-available;
       overflow: hidden;
     }
 
@@ -217,6 +221,7 @@
       color: #ffffff !important;
     }
 
+    /* 할 일 상태 인디케이터 (주간 뷰) */
     .has-todo-dot {
       position: absolute;
       bottom: -6px;
@@ -266,8 +271,10 @@
     /* ────────────────────────────────────────
        스크롤 콘텐츠
     ──────────────────────────────────────── */
+    /* [디자이너님 지시 레이아웃 원상 복구] min-height: 0 적용 */
     #content {
       flex: 1;
+      min-height: 0; 
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
@@ -531,7 +538,7 @@
     .modal-btn.delete { color: var(--danger); font-weight: 600; }
 
     /* ────────────────────────────────────────
-       날짜 캘린더 시트 (이동 및 미루기 공용)
+       날짜 캘린더 시트
     ──────────────────────────────────────── */
     #calendar-sheet {
       position: fixed;
@@ -639,7 +646,7 @@
       font-weight: 600 !important;
     }
 
-    /* 캘린더 모달 인디케이터 */
+    /* 달력 모달 인디케이터 (빨강/초록) */
     .cal-cell { position: relative; }
     .cal-cell.has-active::after, .cal-cell.has-done-only::after {
       content: '';
@@ -653,6 +660,7 @@
     }
     .cal-cell.has-active::after { background: var(--danger); }
     .cal-cell.has-done-only::after { background: var(--success); }
+    
     .cal-cell.selected.has-active::after,
     .cal-cell.selected.has-done-only::after { background: rgba(255,255,255,0.7); }
 
@@ -750,7 +758,7 @@
   </div>
 </div>
 
-<!-- ──────── 캘린더 시트 ──────── -->
+<!-- ──────── 캘린더 시트 (이동 및 미루기 공용) ──────── -->
 <div id="calendar-sheet" role="dialog" aria-modal="true" aria-label="날짜 선택">
   <div class="sheet-backdrop" id="sheet-backdrop"></div>
   <div class="sheet-panel">
@@ -1157,8 +1165,8 @@ function updateWeeklyView() {
   const strip = $('weekly-strip');
   strip.innerHTML = '';
 
-  let dayOfWeek = d.getDay(); // 0(Sun) ~ 6(Sat)
-  let diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 월요일 기준 인덱스로 변환
+  let dayOfWeek = d.getDay(); 
+  let diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; 
 
   const startOfWeek = new Date(d);
   startOfWeek.setDate(d.getDate() - diff);
@@ -1180,6 +1188,7 @@ function updateWeeklyView() {
     const todosForDay = loadTodos(dStr);
     let dotHtml = '';
     if (todosForDay.length > 0) {
+      // 진행중인 항목이 1개라도 있으면 빨강(danger), 전부 완료면 초록(success)
       const hasActiveTodo = todosForDay.some(t => !t.done);
       const dotColor = hasActiveTodo ? 'var(--danger)' : 'var(--success)';
       dotHtml = `<span class="has-todo-dot" style="background: ${dotColor};"></span>`;
@@ -1277,6 +1286,7 @@ function renderCalendar() {
     if (dateStr === todayStr) cell.classList.add('today');
     if (dateStr === currentDate) cell.classList.add('selected');
     
+    // 달력 모달의 닷(dot) 색상 처리
     if (storedDates.includes(dateStr)) {
       const todos = loadTodos(dateStr);
       if (todos.length > 0) {
