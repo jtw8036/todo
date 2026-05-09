@@ -45,23 +45,20 @@
       margin: 0; padding: 0;
       -webkit-tap-highlight-color: transparent;
       -webkit-text-size-adjust: 100%;
+      touch-action: manipulation;
     }
 
-    /* [디자이너 피드백 반영: 오버스크롤 튕김 현상 완벽 차단] */
     html, body {
       width: 100%; 
       height: 100vh;
       min-height: -webkit-fill-available;
-      overflow: hidden; /* 스크롤바 숨김 */
-      overscroll-behavior-y: none; /* iOS 고무줄 바운스 효과 원천 차단 */
-      touch-action: none; /* 화면 전체의 불필요한 터치 이동 차단 */
+      overflow: hidden;
       font-family: 'Noto Sans KR', -apple-system, sans-serif;
       background: var(--bg);
       color: var(--label);
       -webkit-font-smoothing: antialiased;
     }
 
-    /* 앱 레이아웃 */
     #app {
       display: flex;
       flex-direction: column;
@@ -69,7 +66,6 @@
       height: 100vh;
       min-height: -webkit-fill-available;
       overflow: hidden;
-      overscroll-behavior-y: none; /* 혹시 모를 내부 바운스 방지 */
     }
 
     /* ────────────────────────────────────────
@@ -85,7 +81,6 @@
       padding-right: calc(20px + var(--safe-right));
       padding-bottom: 0;
       z-index: 100;
-      touch-action: none; /* 헤더 영역에서 스크롤 안 되게 막음 */
     }
 
     .header-title-row {
@@ -225,7 +220,7 @@
     #add-btn svg { width:18px; height:18px; }
 
     /* ────────────────────────────────────────
-       스크롤 콘텐츠 (여기서만 상하 스크롤 허용)
+       스크롤 콘텐츠
     ──────────────────────────────────────── */
     #content {
       flex: 1;
@@ -233,11 +228,8 @@
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
-      
-      /* 내부 스크롤 허용, 하지만 끝에 닿았을 때 부모(body)가 튕기지 않게 가둠 */
       overscroll-behavior-y: contain; 
-      touch-action: pan-y; /* 위아래 스크롤 동작만 허용 */
-      
+      touch-action: pan-y; 
       padding: 0 calc(16px + var(--safe-left)) 16px calc(16px + var(--safe-right));
     }
 
@@ -308,7 +300,6 @@
       outline: none;
       transition: transform 0.2s cubic-bezier(.4,0,.2,1);
       will-change: transform;
-      /* 리스트 좌우 스와이프(삭제)와 상하 스크롤을 동시 허용하기 위해 pan-x pan-y 적용 */
       touch-action: pan-x pan-y; 
     }
 
@@ -339,10 +330,25 @@
       line-height: 1.4;
       word-break: break-all;
       transition: color 0.2s, text-decoration 0.2s;
+      cursor: text; /* 텍스트 클릭 가능하도록 커서 변경 */
     }
     .task-card.done .task-text {
       text-decoration: line-through;
       color: var(--label3);
+      cursor: default;
+    }
+
+    /* [CTO 추가] 수정 입력창 스타일 */
+    .edit-input {
+      width: 100%;
+      font-size: 15px;
+      font-family: 'Noto Sans KR', sans-serif;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--accent); /* 수정 중 강조 */
+      padding: 0;
+      margin: 0;
     }
 
     /* 완료 카드 undo 버튼 */
@@ -394,7 +400,8 @@
     .section-divider {
       height: 1px;
       background: var(--separator);
-      margin: 6px 4px 0;
+      /* [CTO 수정] 하단 여백을 8px로 주어 카드 간격(.task-wrapper의 margin-bottom 8px)과 완벽히 맞춤 */
+      margin: 6px 4px 8px; 
     }
 
     /* ────────────────────────────────────────
@@ -413,7 +420,7 @@
       padding-left: var(--safe-left);
       padding-right: var(--safe-right);
       z-index: 200;
-      touch-action: none; /* 하단 바 터치로 화면 튕김 방지 */
+      touch-action: none; 
     }
 
     .tab-btn {
@@ -467,7 +474,7 @@
       display: none;
       align-items: flex-end;
       justify-content: center;
-      touch-action: none; /* 캘린더 배경에서 튕김 방지 */
+      touch-action: none; 
     }
     #calendar-sheet.open { display: flex; }
 
@@ -706,8 +713,6 @@ const today = () => fmt(new Date());
 
 /* ════════════════════════════════════════
    데이터 — todos-YYYY-MM-DD 키로 분리 저장
-   (localStorage는 앱 컨테이너에 귀속,
-    Git/SW 업데이트와 완전히 독립적으로 유지됨)
 ════════════════════════════════════════ */
 function loadTodos(dateKey) {
   try {
@@ -826,13 +831,18 @@ function makeCard(todo, idx, isDone) {
   const card = document.createElement('div');
   card.className = `task-card${isDone ? ' done' : ''}`;
 
+  // [CTO 추가] 진행 중일 때만 텍스트 클릭 시 수정 가능하게 연결
+  const textHtml = isDone 
+    ? `<span class="task-text">${escHtml(todo.text)}</span>` 
+    : `<span class="task-text" id="text-${todo.id}" onclick="startEdit('${todo.id}')">${escHtml(todo.text)}</span>`;
+
   card.innerHTML = `
     <button class="check-btn" data-action="${isDone ? 'undo' : 'complete'}" data-id="${todo.id}" aria-label="${isDone ? '되돌리기' : '완료'}">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="20 6 9 17 4 12"/>
       </svg>
     </button>
-    <span class="task-text">${escHtml(todo.text)}</span>
+    ${textHtml}
     ${isDone ? `<button class="undo-btn" data-action="undo" data-id="${todo.id}">되돌리기</button>` : ''}
   `;
 
@@ -847,6 +857,47 @@ function makeCard(todo, idx, isDone) {
 
 function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ════════════════════════════════════════
+   [CTO 추가] 할 일 수정 (인라인 에디팅)
+════════════════════════════════════════ */
+function startEdit(id) {
+  const el = $('text-' + id);
+  if (!el || el.querySelector('input')) return; // 이미 수정 중이면 무시
+
+  const currentText = el.innerText;
+  
+  // 텍스트를 인풋 필드로 교체
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'edit-input';
+  input.value = currentText;
+
+  // 포커스가 빠지거나(blur) 엔터를 누르면 저장
+  input.onblur = () => finishEdit(id, input.value);
+  input.onkeydown = (e) => {
+    if (e.key === 'Enter') input.blur();
+  };
+
+  el.innerHTML = '';
+  el.appendChild(input);
+  input.focus();
+}
+
+function finishEdit(id, newText) {
+  const t = newText.trim();
+  const todos = loadTodos(currentDate);
+  const item = todos.find(x => x.id === id);
+  
+  if (item) {
+    if (t && t !== item.text) {
+      item.text = t; // 새로운 내용이 있을 때만 업데이트
+    }
+    saveTodos(currentDate, todos);
+  }
+  
+  render(); // 변경사항 반영하여 다시 그리기
 }
 
 /* ════════════════════════════════════════
