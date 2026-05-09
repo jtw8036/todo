@@ -45,14 +45,17 @@
       margin: 0; padding: 0;
       -webkit-tap-highlight-color: transparent;
       -webkit-text-size-adjust: 100%;
-      touch-action: manipulation;
     }
 
+    /* [CTO 튕김 해결] 바디 전체에 position: fixed와 touch-action: none을 주어 사파리의 고무줄 바운스를 물리적으로 완벽 차단 */
     html, body {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
       width: 100%; 
-      height: 100vh;
-      min-height: -webkit-fill-available;
+      height: 100%;
       overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
       font-family: 'Noto Sans KR', -apple-system, sans-serif;
       background: var(--bg);
       color: var(--label);
@@ -63,8 +66,8 @@
       display: flex;
       flex-direction: column;
       width: 100%;
-      height: 100vh;
-      min-height: -webkit-fill-available;
+      height: 100%;
+      min-height: 0;
       overflow: hidden;
     }
 
@@ -228,8 +231,8 @@
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: contain; 
-      touch-action: pan-y; 
+      overscroll-behavior-y: contain; /* 내부 영역 스크롤 바운스는 허용하되 부모로 전달 방지 */
+      touch-action: pan-y; /* 스크롤 영역에서 상하 터치 활성화 */
       padding: 0 calc(16px + var(--safe-left)) 16px calc(16px + var(--safe-right));
     }
 
@@ -330,7 +333,7 @@
       line-height: 1.4;
       word-break: break-all;
       transition: color 0.2s, text-decoration 0.2s;
-      cursor: text; /* 텍스트 클릭 가능하도록 커서 변경 */
+      cursor: text; 
     }
     .task-card.done .task-text {
       text-decoration: line-through;
@@ -338,7 +341,7 @@
       cursor: default;
     }
 
-    /* [CTO 추가] 수정 입력창 스타일 */
+    /* 수정 입력창 스타일 */
     .edit-input {
       width: 100%;
       font-size: 15px;
@@ -346,7 +349,7 @@
       border: none;
       outline: none;
       background: transparent;
-      color: var(--accent); /* 수정 중 강조 */
+      color: var(--accent);
       padding: 0;
       margin: 0;
     }
@@ -400,8 +403,7 @@
     .section-divider {
       height: 1px;
       background: var(--separator);
-      /* [CTO 수정] 하단 여백을 8px로 주어 카드 간격(.task-wrapper의 margin-bottom 8px)과 완벽히 맞춤 */
-      margin: 6px 4px 8px; 
+      margin: 6px 4px 8px; /* 카드 간격 8px 유지 */
     }
 
     /* ────────────────────────────────────────
@@ -420,7 +422,6 @@
       padding-left: var(--safe-left);
       padding-right: var(--safe-right);
       z-index: 200;
-      touch-action: none; 
     }
 
     .tab-btn {
@@ -463,6 +464,38 @@
     .tab-btn.active[data-tab="done"] .tab-label { color: var(--accent); }
     .tab-btn:not(.active) .tab-icon svg,
     .tab-btn:not(.active) .tab-label { color: var(--label3); }
+
+    /* ────────────────────────────────────────
+       삭제 확인 커스텀 모달 (iOS Vibe)
+    ──────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 10000;
+      display: none; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.2s;
+      touch-action: none;
+    }
+    .modal-overlay.show { display: flex; opacity: 1; }
+    .modal-box {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      width: 270px; border-radius: 14px;
+      display: flex; flex-direction: column;
+      overflow: hidden; 
+      transform: scale(0.95); transition: transform 0.2s cubic-bezier(.4,0,.2,1);
+    }
+    .modal-overlay.show .modal-box { transform: scale(1); }
+    .modal-text-wrap { padding: 20px 16px; text-align: center; }
+    .modal-title { font-size: 17px; font-weight: 600; color: var(--label); margin-bottom: 4px; }
+    .modal-desc { font-size: 13px; color: var(--label2); line-height: 1.4; }
+    .modal-actions { display: flex; border-top: 0.5px solid rgba(60, 60, 67, 0.2); }
+    .modal-btn {
+      flex: 1; padding: 12px; background: none; border: none; font-size: 17px; cursor: pointer;
+    }
+    .modal-btn.cancel { color: var(--accent); border-right: 0.5px solid rgba(60, 60, 67, 0.2); font-weight: 400; }
+    .modal-btn.delete { color: var(--danger); font-weight: 600; }
 
     /* ────────────────────────────────────────
        날짜 캘린더 시트
@@ -674,6 +707,20 @@
 
 </div><!-- /#app -->
 
+<!-- ──────── 삭제 확인 모달 ──────── -->
+<div id="delete-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-text-wrap">
+      <div class="modal-title">할 일 삭제</div>
+      <div class="modal-desc">정말로 이 할 일을 삭제하시겠습니까?</div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeDeleteModal()">취소</button>
+      <button class="modal-btn delete" onclick="executeDelete()">삭제</button>
+    </div>
+  </div>
+</div>
+
 <!-- ──────── 캘린더 시트 ──────── -->
 <div id="calendar-sheet" role="dialog" aria-modal="true" aria-label="날짜 선택">
   <div class="sheet-backdrop" id="sheet-backdrop"></div>
@@ -831,7 +878,7 @@ function makeCard(todo, idx, isDone) {
   const card = document.createElement('div');
   card.className = `task-card${isDone ? ' done' : ''}`;
 
-  // [CTO 추가] 진행 중일 때만 텍스트 클릭 시 수정 가능하게 연결
+  // 텍스트 수정(인라인 에디팅) 기능 연결
   const textHtml = isDone 
     ? `<span class="task-text">${escHtml(todo.text)}</span>` 
     : `<span class="task-text" id="text-${todo.id}" onclick="startEdit('${todo.id}')">${escHtml(todo.text)}</span>`;
@@ -849,7 +896,7 @@ function makeCard(todo, idx, isDone) {
   wrapper.appendChild(bg);
   wrapper.appendChild(card);
 
-  // 스와이프 삭제 (touch)
+  // 스와이프 삭제 설정 (touch)
   setupSwipe(wrapper, card, todo.id);
 
   return wrapper;
@@ -860,21 +907,18 @@ function escHtml(s) {
 }
 
 /* ════════════════════════════════════════
-   [CTO 추가] 할 일 수정 (인라인 에디팅)
+   할 일 수정 (인라인 에디팅)
 ════════════════════════════════════════ */
 function startEdit(id) {
   const el = $('text-' + id);
-  if (!el || el.querySelector('input')) return; // 이미 수정 중이면 무시
+  if (!el || el.querySelector('input')) return; 
 
   const currentText = el.innerText;
-  
-  // 텍스트를 인풋 필드로 교체
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'edit-input';
   input.value = currentText;
 
-  // 포커스가 빠지거나(blur) 엔터를 누르면 저장
   input.onblur = () => finishEdit(id, input.value);
   input.onkeydown = (e) => {
     if (e.key === 'Enter') input.blur();
@@ -892,16 +936,55 @@ function finishEdit(id, newText) {
   
   if (item) {
     if (t && t !== item.text) {
-      item.text = t; // 새로운 내용이 있을 때만 업데이트
+      item.text = t;
     }
     saveTodos(currentDate, todos);
   }
-  
-  render(); // 변경사항 반영하여 다시 그리기
+  render(); 
 }
 
 /* ════════════════════════════════════════
-   스와이프 삭제
+   삭제 모달 로직 
+════════════════════════════════════════ */
+let deleteTargetId = null;
+let deleteTargetCard = null;
+
+function openDeleteModal(id, card) {
+  deleteTargetId = id;
+  deleteTargetCard = card;
+  const modal = $('delete-modal');
+  modal.style.display = 'flex';
+  // 브라우저 렌더링을 위한 약간의 지연 후 opacity 애니메이션 적용
+  requestAnimationFrame(() => {
+    modal.classList.add('show');
+  });
+}
+
+function closeDeleteModal() {
+  const modal = $('delete-modal');
+  modal.classList.remove('show');
+  
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 200);
+
+  // 모달을 닫을 때 스와이프했던 카드를 다시 제자리로 복구
+  if (deleteTargetCard) {
+    deleteTargetCard.style.transform = 'translateX(0)';
+  }
+  deleteTargetId = null;
+  deleteTargetCard = null;
+}
+
+function executeDelete() {
+  if (deleteTargetId) {
+    deleteTodo(deleteTargetId);
+  }
+  closeDeleteModal();
+}
+
+/* ════════════════════════════════════════
+   스와이프 삭제 (모달 연결)
 ════════════════════════════════════════ */
 function setupSwipe(wrapper, card, id) {
   let startX = 0, currentX = 0, swiping = false;
@@ -924,9 +1007,9 @@ function setupSwipe(wrapper, card, id) {
     if (!swiping) return;
     swiping = false;
     if (currentX < -THRESHOLD) {
-      // 삭제 확정
+      // 카드를 옆으로 민 상태에서 삭제 확인 모달 띄우기
       card.style.transform = 'translateX(-120px)';
-      setTimeout(() => deleteTodo(id), 150);
+      openDeleteModal(id, card);
     } else {
       card.style.transform = 'translateX(0)';
     }
@@ -963,7 +1046,6 @@ function completeTodo(id) {
   const item = todos.find(t => t.id === id);
   if (item) { item.done = true; item.doneAt = Date.now(); }
   saveTodos(currentDate, todos);
-  // 완료 후에는 진행중 탭 유지하되 바로 재렌더
   render();
 }
 
@@ -1080,7 +1162,6 @@ function renderCalendar() {
   const daysInMonth = new Date(calViewYear, calViewMonth+1, 0).getDate();
   const prevDays   = new Date(calViewYear, calViewMonth, 0).getDate();
 
-  // 이전 달 날짜
   for (let i = firstDay - 1; i >= 0; i--) {
     const cell = document.createElement('div');
     cell.className = 'cal-cell other-month';
@@ -1088,7 +1169,6 @@ function renderCalendar() {
     grid.appendChild(cell);
   }
 
-  // 이번 달 날짜
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${calViewYear}-${String(calViewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const cell = document.createElement('div');
@@ -1111,7 +1191,6 @@ function renderCalendar() {
     grid.appendChild(cell);
   }
 
-  // 다음 달 채우기
   const total = firstDay + daysInMonth;
   const remaining = total % 7 === 0 ? 0 : 7 - (total % 7);
   for (let d = 1; d <= remaining; d++) {
@@ -1139,7 +1218,6 @@ $('next-month').addEventListener('click', () => {
 
 /* ════════════════════════════════════════
    PWA — Service Worker 등록 & 자동 업데이트
-   (SW는 정적 파일만 관리, localStorage는 건드리지 않음)
 ════════════════════════════════════════ */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').then(reg => {
@@ -1147,14 +1225,12 @@ if ('serviceWorker' in navigator) {
       const newWorker = reg.installing;
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // 새 버전 감지 → skipWaiting 요청 → 페이지 새로고침
           newWorker.postMessage({ type: 'SKIP_WAITING' });
         }
       });
     });
   });
 
-  // SW 활성화 완료 시 페이지 새로고침 (데이터는 localStorage에 유지)
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!refreshing) { refreshing = true; window.location.reload(); }
