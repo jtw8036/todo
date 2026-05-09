@@ -47,7 +47,7 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* [디자이너님의 해답 복구] 사파리 뷰포트 버그 방지 및 바운스 차단 */
+    /* [디자이너님 원본 레이아웃 절대 보존] */
     html, body {
       margin: 0; padding: 0;
       width: 100%; 
@@ -62,7 +62,6 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* [디자이너님의 해답 복구] flex column 레이아웃 적용 */
     #app {
       display: flex;
       flex-direction: column;
@@ -182,7 +181,7 @@
     .weekly-strip {
       display: flex;
       justify-content: space-between;
-      padding: 0 4px 14px;
+      padding: 0 4px 16px; /* 닷 인디케이터 공간을 위해 하단 패딩 약간 증가 */
     }
     .week-day {
       display: flex;
@@ -191,6 +190,7 @@
       gap: 8px;
       cursor: pointer;
       width: 14%; 
+      position: relative; /* 닷 포지셔닝용 */
     }
     .week-day-name {
       font-size: 12px;
@@ -212,14 +212,21 @@
       border-radius: 50%;
       transition: all 0.2s;
     }
-
-    /* 토요일(오늘) 선택 시 숫자가 안 보이는 오류 방지용 강제 덮어쓰기(!important) */
     .week-day.today .week-day-num {
       color: var(--accent); 
     }
     .week-day.selected .week-day-num {
       background-color: var(--accent) !important;
       color: #ffffff !important;
+    }
+
+    /* 진행중 할 일 인디케이터 (주간 달력용) */
+    .has-todo-dot {
+      position: absolute;
+      bottom: -6px;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
     }
 
     /* ── 입력창 ── */
@@ -266,7 +273,7 @@
     ──────────────────────────────────────── */
     #content {
       flex: 1;
-      min-height: 0; /* [디자이너님의 해답 복구] flex 자식 오버플로우 버그 방지 */
+      min-height: 0; 
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
@@ -388,7 +395,8 @@
       margin: 0;
     }
 
-    .undo-btn {
+    /* 카드 액션 버튼 (미루기 / 되돌리기 통합 스타일) */
+    .card-text-btn {
       font-size: 12px;
       font-weight: 500;
       color: var(--accent);
@@ -530,7 +538,7 @@
     .modal-btn.delete { color: var(--danger); font-weight: 600; }
 
     /* ────────────────────────────────────────
-       날짜 캘린더 시트
+       날짜 캘린더 시트 (모달용)
     ──────────────────────────────────────── */
     #calendar-sheet {
       position: fixed;
@@ -577,6 +585,7 @@
       justify-content: space-between;
       margin-bottom: 16px;
     }
+    
     .sheet-month-label {
       font-size: 17px;
       font-weight: 600;
@@ -631,7 +640,6 @@
     .cal-cell:active { background: var(--accent-light); }
     .cal-cell.other-month { color: var(--label3); opacity: 0.4; }
     
-    /* 모달 캘린더 색상 충돌 방지 */
     .cal-cell.today { font-weight: 700; color: var(--accent); }
     .cal-cell.selected {
       background-color: var(--accent) !important;
@@ -639,6 +647,7 @@
       font-weight: 600 !important;
     }
     
+    /* 진행중 할 일 인디케이터 (월간 달력용) */
     .cal-cell.has-todo::after {
       content: '';
       display: block;
@@ -646,12 +655,12 @@
       border-radius: 50%;
       background: var(--accent);
       position: absolute;
-      bottom: 3px;
+      bottom: 4px;
       left: 50%;
       transform: translateX(-50%);
     }
     .cal-cell { position: relative; }
-    .cal-cell.selected::after { background: rgba(255,255,255,0.7); }
+    .cal-cell.selected.has-todo::after { background: rgba(255,255,255,0.7); }
 
     /* ────────────────────────────────────────
        애니메이션
@@ -747,13 +756,16 @@
   </div>
 </div>
 
-<!-- ──────── 캘린더 시트 ──────── -->
+<!-- ──────── 캘린더 시트 (이동/미루기 공용) ──────── -->
 <div id="calendar-sheet" role="dialog" aria-modal="true" aria-label="날짜 선택">
   <div class="sheet-backdrop" id="sheet-backdrop"></div>
   <div class="sheet-panel">
     <div class="sheet-handle"></div>
     <div class="sheet-title-row">
-      <span class="sheet-month-label" id="sheet-month-label"></span>
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <span id="sheet-title" style="font-size:13px; color:var(--accent); font-weight:600; display:none;">할 일 미루기</span>
+        <span class="sheet-month-label" id="sheet-month-label"></span>
+      </div>
       <div class="sheet-month-nav">
         <button class="sheet-month-btn" id="prev-month" aria-label="이전 달">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -905,6 +917,11 @@ function makeCard(todo, idx, isDone) {
     ? `<span class="task-text">${escHtml(todo.text)}</span>` 
     : `<span class="task-text" id="text-${todo.id}" onclick="startEdit('${todo.id}')">${escHtml(todo.text)}</span>`;
 
+  // [CTO] 완료 상태면 '되돌리기', 진행 중이면 '미루기' 버튼 렌더링
+  const actionBtn = isDone
+    ? `<button class="card-text-btn" data-action="undo" data-id="${todo.id}">되돌리기</button>`
+    : `<button class="card-text-btn" data-action="postpone" data-id="${todo.id}">미루기</button>`;
+
   card.innerHTML = `
     <button class="check-btn" data-action="${isDone ? 'undo' : 'complete'}" data-id="${todo.id}" aria-label="${isDone ? '되돌리기' : '완료'}">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -912,7 +929,7 @@ function makeCard(todo, idx, isDone) {
       </svg>
     </button>
     ${textHtml}
-    ${isDone ? `<button class="undo-btn" data-action="undo" data-id="${todo.id}">되돌리기</button>` : ''}
+    ${actionBtn}
   `;
 
   wrapper.appendChild(bg);
@@ -1000,6 +1017,7 @@ function executeDelete() {
     deleteTodo(deleteTargetId);
   }
   closeDeleteModal();
+  updateWeeklyView(); // 삭제 후 닷(dot) 갱신
 }
 
 /* ════════════════════════════════════════
@@ -1072,6 +1090,7 @@ $('content').addEventListener('click', e => {
   const id = btn.dataset.id;
   if (action === 'complete') completeTodo(id);
   if (action === 'undo')     undoTodo(id);
+  if (action === 'postpone') openCalendar(true, id); // 미루기 액션 추가
 });
 
 /* ════════════════════════════════════════
@@ -1083,6 +1102,7 @@ function addTodo(text) {
   const todos = loadTodos(currentDate);
   todos.push({ id: Date.now().toString(), text: t, done: false, createdAt: Date.now() });
   saveTodos(currentDate, todos);
+  updateWeeklyView(); // 닷(dot) 갱신
   render();
 }
 
@@ -1091,6 +1111,7 @@ function completeTodo(id) {
   const item = todos.find(t => t.id === id);
   if (item) { item.done = true; item.doneAt = Date.now(); }
   saveTodos(currentDate, todos);
+  updateWeeklyView(); // 닷(dot) 갱신
   render();
 }
 
@@ -1099,12 +1120,14 @@ function undoTodo(id) {
   const item = todos.find(t => t.id === id);
   if (item) { item.done = false; delete item.doneAt; }
   saveTodos(currentDate, todos);
+  updateWeeklyView(); // 닷(dot) 갱신
   render();
 }
 
 function deleteTodo(id) {
   const todos = loadTodos(currentDate).filter(t => t.id !== id);
   saveTodos(currentDate, todos);
+  updateWeeklyView(); // 닷(dot) 갱신
   render();
 }
 
@@ -1126,7 +1149,7 @@ $('todo-input').addEventListener('keydown', e => {
 });
 
 /* ════════════════════════════════════════
-   날짜 로직 (월요일 시작 & 오늘 복귀)
+   날짜 로직 (월요일 시작 & 오늘 복귀 & 닷 인디케이터)
 ════════════════════════════════════════ */
 function goToToday() {
   currentDate = today();
@@ -1160,9 +1183,15 @@ function updateWeeklyView() {
     if (dStr === today()) dayEl.classList.add('today');
 
     const dayClass = i === 6 ? ' sun' : (i === 5 ? ' sat' : '');
+    
+    // 진행 중인 할 일이 있는지 검사하여 닷(dot) 표시
+    const todosForDay = loadTodos(dStr);
+    const hasActiveTodo = todosForDay.some(t => !t.done);
+
     dayEl.innerHTML = `
       <span class="week-day-name${dayClass}">${days[i]}</span>
       <span class="week-day-num">${tempD.getDate()}</span>
+      ${hasActiveTodo ? '<span class="has-todo-dot"></span>' : ''}
     `;
     
     dayEl.onclick = () => {
@@ -1192,9 +1221,14 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 /* ════════════════════════════════════════
-   캘린더 시트 (월요일 시작)
+   캘린더 시트 (이동 및 미루기 공용, 월요일 시작)
 ════════════════════════════════════════ */
-function openCalendar() {
+let postponeTargetId = null;
+
+function openCalendar(isPostpone = false, todoId = null) {
+  postponeTargetId = isPostpone ? todoId : null;
+  $('sheet-title').style.display = isPostpone ? 'block' : 'none';
+
   const d = new Date(currentDate + 'T00:00:00');
   calViewYear  = d.getFullYear();
   calViewMonth = d.getMonth();
@@ -1207,7 +1241,11 @@ function openCalendar() {
 function closeCalendar() {
   const sheet = $('calendar-sheet');
   sheet.classList.remove('open');
-  setTimeout(() => { sheet.style.display = 'none'; }, 350);
+  setTimeout(() => { 
+    sheet.style.display = 'none'; 
+    postponeTargetId = null; // 취소 대비 초기화
+    $('sheet-title').style.display = 'none';
+  }, 350);
 }
 
 function renderCalendar() {
@@ -1243,16 +1281,42 @@ function renderCalendar() {
 
     if (dateStr === todayStr) cell.classList.add('today');
     if (dateStr === currentDate) cell.classList.add('selected');
+    
+    // 달력에도 진행 중인 할 일이 있는 날 표시
     if (storedDates.includes(dateStr)) {
       const todos = loadTodos(dateStr);
-      if (todos.length > 0) cell.classList.add('has-todo');
+      if (todos.some(t => !t.done)) cell.classList.add('has-todo');
     }
 
     cell.addEventListener('click', () => {
-      currentDate = dateStr;
-      updateWeeklyView();
-      render();
-      closeCalendar();
+      // 미루기 모드일 경우 처리
+      if (postponeTargetId) {
+        if (dateStr !== currentDate) {
+          const currentTodos = loadTodos(currentDate);
+          const itemIndex = currentTodos.findIndex(t => t.id === postponeTargetId);
+          if (itemIndex > -1) {
+            // 현재 날짜에서 제거
+            const item = currentTodos.splice(itemIndex, 1)[0];
+            saveTodos(currentDate, currentTodos);
+
+            // 선택한 날짜로 이동
+            const targetTodos = loadTodos(dateStr);
+            targetTodos.push(item);
+            saveTodos(dateStr, targetTodos);
+          }
+        }
+        postponeTargetId = null;
+        closeCalendar();
+        updateWeeklyView();
+        render();
+      } 
+      // 일반 이동 모드일 경우 처리
+      else {
+        currentDate = dateStr;
+        updateWeeklyView();
+        render();
+        closeCalendar();
+      }
     });
     grid.appendChild(cell);
   }
@@ -1268,7 +1332,7 @@ function renderCalendar() {
   }
 }
 
-$('date-display-btn').addEventListener('click', openCalendar);
+$('date-display-btn').addEventListener('click', () => openCalendar(false));
 $('sheet-backdrop').addEventListener('click', closeCalendar);
 
 $('prev-month').addEventListener('click', () => {
