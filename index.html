@@ -47,14 +47,13 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* [CTO 수정] 디자이너님의 flex + fill-available 구조 완벽 반영 */
+    /* [CTO 수정 1] 하단 바 붕뜸/오버스크롤 완벽 차단을 위한 절대 좌표 핀셋 고정 */
     html, body {
-      margin: 0; padding: 0;
-      width: 100%; 
-      height: 100dvh;
-      min-height: -webkit-fill-available;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%; height: 100%;
       overflow: hidden;
-      overscroll-behavior-y: none; /* 고무줄 바운스 원천 차단 */
+      overscroll-behavior: none; 
       touch-action: none; 
       font-family: 'Noto Sans KR', -apple-system, sans-serif;
       background: var(--bg);
@@ -63,11 +62,11 @@
     }
 
     #app {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
       display: flex;
       flex-direction: column;
-      width: 100%;
-      height: 100dvh;
-      min-height: -webkit-fill-available;
+      width: 100%; height: 100%;
       overflow: hidden;
     }
 
@@ -211,12 +210,14 @@
       border-radius: 50%;
       transition: all 0.2s;
     }
-    .week-day.selected .week-day-num {
-      background: var(--accent);
-      color: #fff;
+
+    /* [CTO 수정 2] 토요일(오늘) 선택 시 숫자가 안 보이는 오류 방지용 강제 덮어쓰기(!important) */
+    .week-day.today .week-day-num {
+      color: var(--accent); 
     }
-    .week-day.today .week-day-num:not(.selected) {
-      color: var(--accent);
+    .week-day.selected .week-day-num {
+      background-color: var(--accent) !important;
+      color: #ffffff !important;
     }
 
     /* ── 입력창 ── */
@@ -263,7 +264,7 @@
     ──────────────────────────────────────── */
     #content {
       flex: 1;
-      min-height: 0; /* flex 자식 오버플로우 버그 방지 (핵심) */
+      min-height: 0; 
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
@@ -627,12 +628,15 @@
     }
     .cal-cell:active { background: var(--accent-light); }
     .cal-cell.other-month { color: var(--label3); opacity: 0.4; }
+    
+    /* 모달 캘린더 색상 충돌 방지 */
     .cal-cell.today { font-weight: 700; color: var(--accent); }
     .cal-cell.selected {
-      background: var(--accent) !important;
-      color: #fff !important;
-      font-weight: 600;
+      background-color: var(--accent) !important;
+      color: #ffffff !important;
+      font-weight: 600 !important;
     }
+    
     .cal-cell.has-todo::after {
       content: '';
       display: block;
@@ -1120,7 +1124,7 @@ $('todo-input').addEventListener('keydown', e => {
 });
 
 /* ════════════════════════════════════════
-   날짜 로직 (월요일 시작)
+   날짜 로직 (월요일 시작 & 오늘 복귀)
 ════════════════════════════════════════ */
 function goToToday() {
   currentDate = today();
