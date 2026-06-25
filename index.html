@@ -35,33 +35,39 @@
 
     #app { display: flex; flex-direction: column; width: 100%; height: 100vh; }
 
-    /* ── Header & Weekly Strip ── */
+    /* ── Header ── */
     #header { 
-      flex-shrink: 0; background: rgba(242,242,247,0.8); backdrop-filter: blur(20px); 
+      flex-shrink: 0; background: rgba(242,242,247,0.85); backdrop-filter: saturate(180%) blur(20px); 
       padding: calc(var(--safe-top) + 8px) 20px 0; z-index: 100; 
     }
     .header-title-row { display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 8px; }
     .large-title { font-size: 32px; font-weight: 700; letter-spacing: -1px; }
 
-    .date-header-wrapper { display: flex; align-items: center; justify-content: space-between; padding: 12px 4px; }
-    #date-label-main { font-size: 18px; font-weight: 700; }
-    .today-pin-btn { background: rgba(120,120,128,0.12); border: none; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--accent); }
+    .progress-area { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .progress-text { font-size: 12px; color: var(--label3); font-weight: 600; }
+    .progress-bar-wrap { width: 80px; height: 5px; background: var(--separator); border-radius: 99px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: var(--accent); transition: width 0.4s ease; }
 
-    .weekly-strip-container { overflow: hidden; position: relative; margin-bottom: 14px; }
-    .weekly-strip { 
+    .date-header-wrapper { display: flex; align-items: center; justify-content: space-between; padding: 12px 4px; }
+    #date-label-main { font-size: 18px; font-weight: 700; color: var(--label); }
+    .today-pin-btn { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    /* ── Weekly Strip (Micro Interaction) ── */
+    .weekly-strip-container { overflow: hidden; margin-bottom: 14px; }
+    #weekly-strip { 
       display: flex; justify-content: space-between; 
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      will-change: transform;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .week-day { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 14%; cursor: pointer; position: relative; }
+    .week-day-name { font-size: 11px; font-weight: 600; color: var(--label3); }
     .week-day-num { 
       font-size: 16px; font-weight: 600; width: 34px; height: 34px; 
       display: flex; align-items: center; justify-content: center; border-radius: 50%;
       transition: background 0.2s, color 0.2s;
     }
     .week-day.selected .week-day-num { background: var(--accent); color: #fff; }
-    .week-day.today .week-day-num { color: var(--accent); border: 1.5px solid var(--accent); }
-    .week-day.selected.today .week-day-num { border: none; }
+    .week-day.today .week-day-num { color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+    .week-day.selected.today .week-day-num { box-shadow: none; }
     .has-todo-dot { position: absolute; bottom: -4px; width: 4px; height: 4px; border-radius: 50%; }
 
     /* ── Input Bar ── */
@@ -73,13 +79,13 @@
     #todo-input { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
     #add-btn { 
       width: 34px; height: 34px; border: none; border-radius: 50%; 
-      background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; 
+      background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
 
-    /* ── Task List ── */
-    #content { flex: 1; overflow-y: auto; padding: 0 16px 120px; }
-    .task-wrapper { position: relative; border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; transition: all 0.3s; }
-    .swipe-bg { position: absolute; inset: 0; background: var(--danger); display: flex; align-items: center; justify-content: flex-end; padding-right: 20px; color: #fff; font-size: 13px; font-weight: 600; }
+    /* ── Content ── */
+    #content { flex: 1; overflow-y: auto; padding: 0 16px 100px; -webkit-overflow-scrolling: touch; }
+    .task-wrapper { position: relative; border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; background: var(--danger); }
+    .swipe-bg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; padding-right: 20px; color: #fff; font-size: 13px; font-weight: 600; }
     .task-card { 
       position: relative; z-index: 1; background: var(--surface); 
       display: flex; align-items: center; gap: 12px; padding: 16px; 
@@ -92,11 +98,11 @@
       transition: all 0.2s;
     }
     .task-card.done .check-btn { background: var(--success); border-color: var(--success); }
-    .task-text { flex: 1; display: flex; flex-direction: column; }
-    .task-text-title { font-size: 16px; font-weight: 500; color: var(--label); }
+    .task-text { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .task-text-title { font-size: 16px; font-weight: 500; color: var(--label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .task-meta { font-size: 11px; color: var(--label3); margin-top: 3px; display: flex; gap: 8px; }
 
-    /* ── Detail Information Modal ── */
+    /* ── Modal (상세 정보) ── */
     .modal-overlay { 
       position: fixed; inset: 0; background: rgba(0,0,0,0.4); 
       z-index: 2000; display: none; align-items: flex-end; opacity: 0; 
@@ -105,63 +111,56 @@
     .modal-overlay.show { display: flex; opacity: 1; }
     .detail-sheet { 
       width: 100%; background: #fff; border-radius: 24px 24px 0 0; 
-      padding: 20px 20px calc(var(--safe-bottom) + 10px); 
+      padding: 20px 20px calc(var(--safe-bottom) + 20px); 
       transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
     }
     .modal-overlay.show .detail-sheet { transform: translateY(0); }
-    
-    .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .detail-top-title { font-size: 15px; color: var(--label3); font-weight: 600; }
-    .detail-close { color: var(--accent); font-weight: 700; border: none; background: none; font-size: 16px; padding: 5px; }
+    .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .detail-top-label { font-size: 13px; color: var(--accent); font-weight: 700; text-transform: uppercase; }
+    .detail-close { color: var(--accent); font-weight: 700; border: none; background: none; font-size: 16px; cursor: pointer; }
     
     #detail-task-display { font-size: 22px; font-weight: 700; color: var(--label); margin-bottom: 24px; line-height: 1.3; }
 
     .detail-section { margin-bottom: 24px; }
-    .detail-section-label { font-size: 13px; font-weight: 600; color: var(--label3); margin-bottom: 12px; display: block; text-transform: uppercase; }
+    .detail-section-label { font-size: 13px; font-weight: 600; color: var(--label3); margin-bottom: 12px; display: block; }
     
     .options-group { display: flex; gap: 8px; }
     .opt-btn { 
-      padding: 10px 16px; border-radius: 12px; background: var(--bg); 
+      flex: 1; padding: 12px; border-radius: 12px; background: var(--bg); 
       font-size: 14px; font-weight: 600; cursor: pointer; border: none; color: var(--label2);
     }
     .opt-btn.active { background: var(--accent); color: #fff; }
 
-    .subtask-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .subtask-item input[type="text"] { flex: 1; border: none; background: var(--bg); padding: 12px; border-radius: 10px; outline: none; font-size: 14px; }
-    .subtask-add-btn { 
-      width: 100%; padding: 14px; border: 1.5px dashed var(--separator); 
-      border-radius: 12px; background: none; color: var(--accent); font-weight: 700; cursor: pointer; 
-    }
+    .subtask-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .subtask-item input[type="text"] { flex: 1; border: none; background: var(--bg); padding: 12px; border-radius: 10px; font-size: 14px; outline: none; }
+    .subtask-add-btn { width: 100%; padding: 14px; border: 1.5px dashed var(--separator); border-radius: 12px; background: none; color: var(--accent); font-weight: 700; cursor: pointer; margin-top: 5px; }
 
-    .action-btn { 
-      width: 100%; padding: 16px; border-radius: 14px; border: none; 
-      font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px;
-    }
+    .detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .action-btn { padding: 16px; border-radius: 14px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; }
     .btn-postpone { background: var(--accent-light); color: var(--accent); }
-    .btn-delete { background: #fff; color: var(--danger); border: 1px solid rgba(255,59,48,0.2); }
+    .btn-delete { background: #FFF5F5; color: var(--danger); }
 
-    /* ── Postpone Calendar Sheet ── */
+    /* ── Postpone Sheet ── */
     #calendar-sheet { position: fixed; inset: 0; z-index: 3000; display: none; align-items: flex-end; }
-    #calendar-sheet.open { display: flex; }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px 0; }
-    .cal-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 14px; border-radius: 50%; cursor: pointer; }
+    .cal-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 14px; border-radius: 50%; cursor: pointer; font-weight: 500; }
     .cal-cell.selected { background: var(--accent); color: #fff; font-weight: 700; }
-    .cal-cell.today { color: var(--accent); font-weight: 800; text-decoration: underline; }
+    .cal-cell.today { color: var(--accent); font-weight: 800; box-shadow: inset 0 0 0 1px var(--accent); }
 
     /* ── Tab Bar ── */
     #tab-bar { 
       position: fixed; bottom: 0; width: 100%; background: rgba(255,255,255,0.9); 
       backdrop-filter: blur(20px); border-top: 1px solid var(--separator); 
-      display: flex; height: calc(64px + var(--safe-bottom)); padding-bottom: var(--safe-bottom); 
+      display: flex; height: calc(64px + var(--safe-bottom)); padding-bottom: var(--safe-bottom); z-index: 1000;
     }
-    .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: none; background: none; color: var(--label3); }
+    .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: none; background: none; color: var(--label3); cursor: pointer; }
     .tab-btn.active { color: var(--accent); }
     .tab-label { font-size: 10px; font-weight: 700; margin-top: 4px; }
 
     .empty-state { text-align: center; padding-top: 60px; color: var(--label3); font-size: 15px; }
 
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-    .task-wrapper { animation: fadeInUp 0.4s ease-out both; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .task-wrapper { animation: fadeInUp 0.3s ease-out both; }
   </style>
 </head>
 <body>
@@ -183,7 +182,7 @@
       <div id="weekly-strip" class="weekly-strip"></div>
     </div>
     <div id="input-bar">
-      <input id="todo-input" type="text" placeholder="어떤 일을 하실 건가요?" autocomplete="off" />
+      <input id="todo-input" type="text" placeholder="새로운 할 일 입력" autocomplete="off" />
       <button id="add-btn" onclick="addTask()">
         <svg viewBox="0 0 24 24" width="20" height="20" stroke="#fff" fill="none" stroke-width="3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
@@ -193,11 +192,11 @@
   <main id="content"></main>
 
   <nav id="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('active')">
+    <button class="tab-btn active" id="tab-active-btn" onclick="switchTab('active')">
       <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
       <span class="tab-label">진행 중</span>
     </button>
-    <button class="tab-btn" onclick="switchTab('done')">
+    <button class="tab-btn" id="tab-done-btn" onclick="switchTab('done')">
       <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       <span class="tab-label">완료됨</span>
     </button>
@@ -208,8 +207,8 @@
 <div id="detail-modal" class="modal-overlay" onclick="closeDetail()">
   <div class="detail-sheet" onclick="event.stopPropagation()">
     <div class="detail-header">
-      <span class="detail-top-title">상세 정보</span>
-      <button class="detail-close" onclick="closeDetail()">완료</button>
+      <span class="detail-top-label">상세 정보</span>
+      <button class="detail-close" onclick="closeDetail()">닫기</button>
     </div>
     
     <div id="detail-task-display"></div>
@@ -229,16 +228,18 @@
       <button class="subtask-add-btn" onclick="addSubtask()">+ 항목 추가</button>
     </div>
 
-    <button class="action-btn btn-postpone" onclick="openCalendar()">📅 다른 날로 미루기</button>
-    <button class="action-btn btn-delete" onclick="handleDeleteFromDetail()">🗑️ 이 할 일 삭제</button>
+    <div class="detail-actions">
+      <button class="action-btn btn-postpone" onclick="openCalendar()">미루기</button>
+      <button class="action-btn btn-delete" onclick="handleDeleteFromDetail()">삭제</button>
+    </div>
   </div>
 </div>
 
-<!-- 미루기 날짜 선택 시트 -->
+<!-- 미루기 날짜 선택 -->
 <div id="calendar-sheet" class="modal-overlay" onclick="closeCalendar()">
   <div class="detail-sheet" onclick="event.stopPropagation()">
     <div class="detail-header">
-      <span class="detail-top-title">날짜 이동</span>
+      <span class="detail-top-label">날짜 선택</span>
       <button class="detail-close" onclick="closeCalendar()">취소</button>
     </div>
     <div class="cal-grid" id="cal-grid"></div>
@@ -247,7 +248,7 @@
 
 <script>
 /* ════════════════════════════════════════
-   기초 로직 & 데이터
+   Core Utils & Storage
 ════════════════════════════════════════ */
 const $ = id => document.getElementById(id);
 const fmt = d => {
@@ -261,50 +262,76 @@ let currentDate = fmt(new Date());
 let currentTab = 'active';
 let editingId = null;
 
-const getRawTodos = (date) => JSON.parse(localStorage.getItem('todos-' + date) || '[]');
+// 안전한 데이터 로드 (에러 방지)
+const getRawTodos = (date) => {
+  try { return JSON.parse(localStorage.getItem('todos-' + date) || '[]'); } catch(e) { return []; }
+};
 const saveRawTodos = (date, list) => localStorage.setItem('todos-' + date, JSON.stringify(list));
-const getRules = () => JSON.parse(localStorage.getItem('recurring-rules') || '[]');
+const getRules = () => {
+  try { return JSON.parse(localStorage.getItem('recurring-rules') || '[]'); } catch(e) { return []; }
+};
 const saveRules = (rules) => localStorage.setItem('recurring-rules', JSON.stringify(rules));
 
+// 데이터 병합 (반복 규칙 + 개별 인스턴스)
 function loadMergedTodos(date) {
-  const d = new Date(date + "T00:00:00");
-  const rules = getRules();
-  const instances = getRawTodos(date);
-  
-  const merged = rules.filter(r => {
-    const start = new Date(r.startDate + "T00:00:00");
-    if (d < start) return false;
-    if (r.recurring === 'daily') return true;
-    if (r.recurring === 'weekly') return d.getDay() === start.getDay();
-    return false;
-  }).map(r => {
-    const inst = instances.find(i => i.ruleId === r.id);
-    return { ...r, id: r.id, ruleId: r.id, done: inst ? inst.done : false, subTasks: inst ? (inst.subTasks || []) : (r.subTasks || []), isRecurring: true };
-  });
+  try {
+    const d = new Date(date + "T00:00:00");
+    const rules = getRules();
+    const instances = getRawTodos(date);
+    
+    const merged = rules.filter(r => {
+      const start = new Date(r.startDate + "T00:00:00");
+      if (d < start) return false;
+      if (r.recurring === 'daily') return true;
+      if (r.recurring === 'weekly') return d.getDay() === start.getDay();
+      return false;
+    }).map(r => {
+      const inst = instances.find(i => i.ruleId === r.id);
+      return { 
+        ...r, 
+        id: r.id, 
+        ruleId: r.id, 
+        done: inst ? inst.done : false, 
+        subTasks: inst ? (inst.subTasks || []) : (r.subTasks || []), 
+        isRecurring: true 
+      };
+    });
 
-  instances.filter(i => !i.ruleId).forEach(i => {
-    merged.push({ ...i, isRecurring: false, subTasks: i.subTasks || [], recurring: 'none' });
-  });
-  return merged;
+    instances.filter(i => !i.ruleId).forEach(i => {
+      merged.push({ 
+        ...i, 
+        isRecurring: false, 
+        subTasks: i.subTasks || [], 
+        recurring: 'none' 
+      });
+    });
+    return merged;
+  } catch(e) { return []; }
 }
 
 /* ════════════════════════════════════════
-   메인 렌더링
+   Render & Main Logic
 ════════════════════════════════════════ */
 function render() {
   const all = loadMergedTodos(currentDate);
   const list = all.filter(t => currentTab === 'active' ? !t.done : t.done);
   
-  $('prog-done').textContent = all.filter(t => t.done).length;
+  const doneCount = all.filter(t => t.done).length;
+  $('prog-done').textContent = doneCount;
   $('prog-total').textContent = all.length;
-  $('prog-bar').style.width = all.length ? (all.filter(t => t.done).length / all.length * 100) + '%' : '0%';
+  $('prog-bar').style.width = all.length ? (doneCount / all.length * 100) + '%' : '0%';
 
   const container = $('content');
-  container.innerHTML = list.length ? '' : `<div class="empty-state">${currentTab === 'active' ? '할 일이 없습니다. 평온한 하루네요!' : '완료된 할 일이 아직 없어요.'}</div>`;
+  container.innerHTML = '';
+  
+  if(!list.length) {
+    container.innerHTML = `<div class="empty-state">${currentTab === 'active' ? '할 일이 없습니다.' : '완료된 항목이 없습니다.'}</div>`;
+    return;
+  }
 
   list.forEach(todo => {
-    const subTotal = (todo.subTasks || []).length;
-    const subDone = (todo.subTasks || []).filter(s => s.done).length;
+    const subT = (todo.subTasks || []).length;
+    const subD = (todo.subTasks || []).filter(s => s.done).length;
     
     const wrap = document.createElement('div');
     wrap.className = 'task-wrapper';
@@ -318,7 +345,7 @@ function render() {
           <span class="task-text-title">${todo.text}</span>
           <div class="task-meta">
             ${todo.recurring !== 'none' ? '🔁 ' + todo.recurring : ''} 
-            ${subTotal > 0 ? '✅ ' + subDone + '/' + subTotal : ''}
+            ${subT > 0 ? '✅ ' + subD + '/' + subT : ''}
           </div>
         </div>
       </div>
@@ -356,12 +383,13 @@ function toggleTodo(id, isRec) {
 }
 
 /* ════════════════════════════════════════
-   상세 정보 & 하위 할 일
+   Modal & Subtasks
 ════════════════════════════════════════ */
 function openDetail(id, isRec) {
   editingId = id;
   const todo = loadMergedTodos(currentDate).find(t => t.id === id);
-  
+  if(!todo) return;
+
   $('detail-task-display').textContent = todo.text;
   document.querySelectorAll('.opt-btn').forEach(el => el.classList.remove('active'));
   const recEl = $('rec-' + (todo.recurring || 'none'));
@@ -381,45 +409,37 @@ function handleRecurChange(val) {
   const rules = getRules();
   const todos = getRawTodos(currentDate);
   const todo = loadMergedTodos(currentDate).find(t => t.id === editingId);
+  if(!todo) return;
 
-  // 현재 반복 중인 항목을 '안 함'으로 바꿀 때
   if (todo.isRecurring && val === 'none') {
-    if (confirm("반복을 해제하시겠습니까? \n'확인'을 누르면 오늘 하루만 일반 할 일로 남고, 반복 규칙은 삭제됩니다.")) {
+    if (confirm("반복을 해제하시겠습니까? 오늘 하루만 일반 할 일로 남습니다.")) {
       const ruleIdx = rules.findIndex(r => r.id === editingId);
       const rule = rules.splice(ruleIdx, 1)[0];
-      todos.push({ ...rule, id: 't-' + Date.now(), recurring: 'none', isRecurring: false, ruleId: undefined });
-      saveRules(rules);
-      saveRawTodos(currentDate, todos);
-    } else { return; }
-  } 
-  // 일반 항목을 반복으로 바꿀 때
-  else if (!todo.isRecurring && val !== 'none') {
+      todos.push({ ...rule, id: 't-' + Date.now(), recurring: 'none', ruleId: undefined });
+      saveRules(rules); saveRawTodos(currentDate, todos);
+    } else return;
+  } else if (!todo.isRecurring && val !== 'none') {
     const tIdx = todos.findIndex(i => i.id === editingId);
     const item = todos.splice(tIdx, 1)[0];
     rules.push({ ...item, id: 'r-' + Date.now(), recurring: val, startDate: currentDate });
-    saveRawTodos(currentDate, todos);
-    saveRules(rules);
-  }
-  // 이미 반복 중인 항목의 주기를 바꿀 때
-  else if (todo.isRecurring) {
+    saveRawTodos(currentDate, todos); saveRules(rules);
+  } else if (todo.isRecurring) {
     const r = rules.find(r => r.id === editingId);
     if(r) r.recurring = val;
     saveRules(rules);
   }
-  
-  closeDetail();
+  closeDetail(); updateWeeklyView();
 }
 
 function renderSubtasks(subs) {
-  const cont = $('subtask-container');
-  cont.innerHTML = '';
+  const cont = $('subtask-container'); cont.innerHTML = '';
   subs.forEach((s, idx) => {
     const div = document.createElement('div');
     div.className = 'subtask-item';
     div.innerHTML = `
       <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSub(${idx})">
-      <input type="text" value="${s.text}" onchange="editSub(${idx}, this.value)" placeholder="항목 입력">
-      <button onclick="delSub(${idx})" style="border:none; background:none; color:var(--danger); font-weight:800; padding:5px;">✕</button>
+      <input type="text" value="${s.text}" onchange="editSub(${idx}, this.value)" placeholder="할 일 입력">
+      <button onclick="delSub(${idx})" style="border:none; background:none; color:var(--danger); font-size:16px;">✕</button>
     `;
     cont.appendChild(div);
   });
@@ -445,6 +465,7 @@ function updateSubData(todo) {
 
 function addSubtask() {
   const todo = loadMergedTodos(currentDate).find(t => t.id === editingId);
+  if(!todo) return;
   if(!todo.subTasks) todo.subTasks = [];
   todo.subTasks.push({ text: '', done: false });
   updateSubData(todo);
@@ -469,9 +490,65 @@ function delSub(idx) {
 }
 
 /* ════════════════════════════════════════
-   날짜 이동 (미루기)
+   Date Navigation & Micro Interactions
+════════════════════════════════════════ */
+function updateWeeklyView() {
+  const d = new Date(currentDate + "T00:00:00");
+  $('date-label-main').textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월`;
+  const strip = $('weekly-strip'); 
+  
+  // 페이드 아웃 효과
+  strip.style.opacity = "0.3";
+  strip.style.transform = "scale(0.98)";
+
+  setTimeout(() => {
+    strip.innerHTML = '';
+    let start = new Date(d);
+    // 월요일 기준으로 시작일 계산
+    const day = d.getDay();
+    const diff = (day === 0 ? -6 : 1 - day);
+    start.setDate(d.getDate() + diff);
+
+    for(let i=0; i<7; i++) {
+      const curr = new Date(start); curr.setDate(start.getDate() + i);
+      const s = fmt(curr);
+      const dayEl = document.createElement('div');
+      dayEl.className = `week-day ${s === currentDate ? 'selected' : ''} ${s === today() ? 'today' : ''}`;
+      const todos = loadMergedTodos(s);
+      let dot = todos.length ? `<div class="has-todo-dot" style="background:${todos.some(t=>!t.done)?'var(--danger)':'var(--success)'}"></div>` : '';
+      dayEl.innerHTML = `<span class="week-day-name">${['월','화','수','목','금','토','일'][i]}</span><span class="week-day-num">${curr.getDate()}</span>${dot}`;
+      dayEl.onclick = () => { currentDate = s; updateWeeklyView(); render(); };
+      strip.appendChild(dayEl);
+    }
+    strip.style.opacity = "1";
+    strip.style.transform = "scale(1)";
+  }, 100);
+}
+
+let stripStartX = 0;
+$('weekly-strip').ontouchstart = e => stripStartX = e.touches[0].clientX;
+$('weekly-strip').ontouchend = e => {
+  const diff = e.changedTouches[0].clientX - stripStartX;
+  if (Math.abs(diff) > 60) {
+    const d = new Date(currentDate + "T00:00:00");
+    if (diff > 0) { // 이전 주로 (지난 주 일요일 선택)
+      const day = d.getDay();
+      d.setDate(d.getDate() - (day === 0 ? 7 : day));
+    } else { // 다음 주로 (다음 주 월요일 선택)
+      const day = d.getDay();
+      d.setDate(d.getDate() + (day === 0 ? 1 : 8 - day));
+    }
+    currentDate = fmt(d);
+    updateWeeklyView(); render();
+  }
+};
+
+/* ════════════════════════════════════════
+   Postpone (Calendar)
 ════════════════════════════════════════ */
 function openCalendar() {
+  const todo = loadMergedTodos(currentDate).find(t => t.id === editingId);
+  if(todo && todo.isRecurring) { alert("반복 일정은 미룰 수 없습니다. 반복 설정을 변경해주세요."); return; }
   $('calendar-sheet').style.display = 'flex';
   setTimeout(() => $('calendar-sheet').classList.add('show'), 10);
   renderPostponeCal();
@@ -485,49 +562,33 @@ function closeCalendar() {
 function renderPostponeCal() {
   const grid = $('cal-grid'); grid.innerHTML = '';
   const now = new Date();
-  // 현재 날짜 기준 전후 15일씩 표시
-  for(let i=-7; i<=21; i++) {
-    const d = new Date();
-    d.setDate(now.getDate() + i);
+  for(let i=-3; i<=17; i++) {
+    const d = new Date(); d.setDate(now.getDate() + i);
     const s = fmt(d);
     const cell = document.createElement('div');
     cell.className = `cal-cell ${s === currentDate ? 'selected' : ''} ${s === today() ? 'today' : ''}`;
-    cell.innerHTML = `<span>${d.getDate()}</span>`;
-    cell.onclick = () => moveTodo(s);
+    cell.textContent = d.getDate();
+    cell.onclick = () => {
+      if(s === currentDate) return;
+      const src = getRawTodos(currentDate);
+      const dest = getRawTodos(s);
+      const idx = src.findIndex(t => t.id === editingId);
+      const item = src.splice(idx, 1)[0];
+      dest.push(item);
+      saveRawTodos(currentDate, src); saveRawTodos(s, dest);
+      currentDate = s; closeCalendar(); closeDetail(); updateWeeklyView(); render();
+    };
     grid.appendChild(cell);
   }
 }
 
-function moveTodo(targetDate) {
-  if (targetDate === currentDate) { closeCalendar(); return; }
-  
-  const rules = getRules();
-  const sourceTodos = getRawTodos(currentDate);
-  const targetTodos = getRawTodos(targetDate);
-  const todo = loadMergedTodos(currentDate).find(t => t.id === editingId);
-
-  if (todo.isRecurring) {
-    alert("반복 할 일은 '미루기'가 불가능합니다. 반복 설정을 변경해 주세요.");
-  } else {
-    const idx = sourceTodos.findIndex(t => t.id === editingId);
-    const item = sourceTodos.splice(idx, 1)[0];
-    targetTodos.push(item);
-    saveRawTodos(currentDate, sourceTodos);
-    saveRawTodos(targetDate, targetTodos);
-    currentDate = targetDate;
-  }
-  
-  closeCalendar();
-  closeDetail();
-  updateWeeklyView();
-  render();
-}
-
+/* ════════════════════════════════════════
+   Others
+════════════════════════════════════════ */
 function deleteTodo(id, isRec) {
   if (isRec) {
-    if(confirm("모든 반복 일정을 삭제하시겠습니까?")) {
-      saveRules(getRules().filter(r => r.id !== id));
-    } else { return; }
+    if(confirm("모든 반복 일정을 삭제하시겠습니까?")) saveRules(getRules().filter(r => r.id !== id));
+    else return;
   } else {
     saveRawTodos(currentDate, getRawTodos(currentDate).filter(t => t.id !== id));
   }
@@ -536,77 +597,14 @@ function deleteTodo(id, isRec) {
 
 function handleDeleteFromDetail() {
   const todo = loadMergedTodos(currentDate).find(t => t.id === editingId);
-  deleteTodo(editingId, todo.isRecurring);
+  if(todo) deleteTodo(editingId, todo.isRecurring);
   closeDetail();
 }
 
-/* ════════════════════════════════════════
-   주간 스와이프 & 마이크로 인터랙션
-════════════════════════════════════════ */
-function updateWeeklyView() {
-  const d = new Date(currentDate + "T00:00:00");
-  $('date-label-main').textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월`;
-  const strip = $('weekly-strip'); 
-  
-  // 마이크로 인터랙션: 기존 내용을 교체하기 전에 살짝 투명하게
-  strip.style.opacity = "0";
-  
-  setTimeout(() => {
-    strip.innerHTML = '';
-    let start = new Date(d);
-    start.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1));
-
-    for(let i=0; i<7; i++) {
-      const curr = new Date(start); curr.setDate(start.getDate() + i);
-      const s = fmt(curr);
-      const day = document.createElement('div');
-      day.className = `week-day ${s === currentDate ? 'selected' : ''} ${s === today() ? 'today' : ''}`;
-      const todos = loadMergedTodos(s);
-      let dot = todos.length ? `<div class="has-todo-dot" style="background:${todos.some(t=>!t.done)?'var(--danger)':'var(--success)'}"></div>` : '';
-      day.innerHTML = `<span style="font-size:11px; font-weight:700; color:var(--label3); margin-bottom:2px;">${['월','화','수','목','금','토','일'][i]}</span><span class="week-day-num">${curr.getDate()}</span>${dot}`;
-      day.onclick = () => { currentDate = s; updateWeeklyView(); render(); };
-      strip.appendChild(day);
-    }
-    strip.style.opacity = "1";
-  }, 50);
-}
-
-// 주간 스와이프 로직 수정
-let stripStartX = 0;
-$('weekly-strip').ontouchstart = e => { stripStartX = e.touches[0].clientX; };
-$('weekly-strip').ontouchend = e => {
-  const diff = e.changedTouches[0].clientX - stripStartX;
-  if (Math.abs(diff) > 60) {
-    const d = new Date(currentDate + "T00:00:00");
-    const strip = $('weekly-strip');
-    
-    if (diff > 0) { // 오른쪽으로 스와이프 (이전 주로)
-      // 지난 주 일요일 선택
-      const day = d.getDay() === 0 ? 0 : d.getDay();
-      d.setDate(d.getDate() - day);
-      strip.style.transform = "translateX(20px)";
-    } else { // 왼쪽으로 스와이프 (다음 주로)
-      // 다음 주 월요일 선택
-      const day = d.getDay() === 0 ? 7 : d.getDay();
-      d.setDate(d.getDate() + (8 - day));
-      strip.style.transform = "translateX(-20px)";
-    }
-    
-    currentDate = fmt(d);
-    setTimeout(() => {
-      strip.style.transform = "translateX(0)";
-      updateWeeklyView(); 
-      render();
-    }, 100);
-  }
-};
-
-/* ════════════════════════════════════════
-   기타 유틸리티
-════════════════════════════════════════ */
 function switchTab(t) {
   currentTab = t;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.onclick.toString().includes(t)));
+  $('tab-active-btn').classList.toggle('active', t === 'active');
+  $('tab-done-btn').classList.toggle('active', t === 'done');
   render();
 }
 
@@ -627,9 +625,9 @@ function setupSwipe(wrap) {
   };
 }
 
-$('todo-input').onkeypress = (e) => { if(e.key === 'Enter') addTask(); };
+$('todo-input').onkeypress = e => { if(e.key === 'Enter') addTask(); };
 
-// 초기 실행
+// Start
 updateWeeklyView();
 render();
 </script>
