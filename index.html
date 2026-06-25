@@ -47,7 +47,6 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* [디자이너님 지시 레이아웃 원상 복구] fill-available 뼈대 */
     html, body {
       margin: 0; padding: 0;
       width: 100%; 
@@ -62,7 +61,6 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* [디자이너님 지시 레이아웃 원상 복구] flex column */
     #app {
       display: flex;
       flex-direction: column;
@@ -104,7 +102,6 @@
       line-height: 1;
     }
 
-    /* ── 진행도 영역 ── */
     .progress-area {
       display: flex;
       flex-direction: column;
@@ -140,7 +137,6 @@
       will-change: width;
     }
 
-    /* ── 주간 캘린더 (Weekly Strip) ── */
     .date-header-wrapper {
       display: flex;
       align-items: center;
@@ -183,6 +179,8 @@
       display: flex;
       justify-content: space-between;
       padding: 0 4px 14px;
+      touch-action: pan-x; /* 가로 스와이프 허용 */
+      user-select: none;
     }
     .week-day {
       display: flex;
@@ -221,7 +219,6 @@
       color: #ffffff !important;
     }
 
-    /* 할 일 상태 인디케이터 (주간 뷰) */
     .has-todo-dot {
       position: absolute;
       bottom: -6px;
@@ -229,7 +226,6 @@
       border-radius: 50%;
     }
 
-    /* ── 입력창 ── */
     #input-bar {
       display: flex;
       align-items: center;
@@ -271,7 +267,6 @@
     /* ────────────────────────────────────────
        스크롤 콘텐츠
     ──────────────────────────────────────── */
-    /* [디자이너님 지시 레이아웃 원상 복구] min-height: 0 적용 */
     #content {
       flex: 1;
       min-height: 0; 
@@ -283,7 +278,6 @@
       padding: 0 calc(16px + var(--safe-left)) 16px calc(16px + var(--safe-right));
     }
 
-    /* ── 섹션 헤더 (소제목 + 카운트) ── */
     .section-header {
       display: flex;
       align-items: baseline;
@@ -308,7 +302,6 @@
       border-radius: 99px;
     }
 
-    /* ── 할 일 카드 ── */
     .task-wrapper {
       position: relative;
       border-radius: var(--radius);
@@ -408,7 +401,6 @@
       flex-shrink: 0;
     }
 
-    /* ── Empty State ── */
     .empty-state {
       display: flex;
       flex-direction: column;
@@ -505,9 +497,7 @@
     .tab-btn:not(.active) .tab-icon svg,
     .tab-btn:not(.active) .tab-label { color: var(--label3); }
 
-    /* ────────────────────────────────────────
-       삭제 확인 커스텀 모달
-    ──────────────────────────────────────── */
+    /* ── 삭제 모달 ── */
     .modal-overlay {
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.4);
@@ -537,9 +527,7 @@
     .modal-btn.cancel { color: var(--accent); border-right: 0.5px solid rgba(60, 60, 67, 0.2); font-weight: 400; }
     .modal-btn.delete { color: var(--danger); font-weight: 600; }
 
-    /* ────────────────────────────────────────
-       날짜 캘린더 시트
-    ──────────────────────────────────────── */
+    /* ── 캘린더 시트 ── */
     #calendar-sheet {
       position: fixed;
       inset: 0;
@@ -646,7 +634,6 @@
       font-weight: 600 !important;
     }
 
-    /* 달력 모달 인디케이터 (빨강/초록) */
     .cal-cell { position: relative; }
     .cal-cell.has-active::after, .cal-cell.has-done-only::after {
       content: '';
@@ -664,9 +651,6 @@
     .cal-cell.selected.has-active::after,
     .cal-cell.selected.has-done-only::after { background: rgba(255,255,255,0.7); }
 
-    /* ────────────────────────────────────────
-       애니메이션
-    ──────────────────────────────────────── */
     @keyframes slideUp {
       from { opacity:0; transform: translateY(16px); }
       to   { opacity:1; transform: translateY(0); }
@@ -683,7 +667,6 @@
     <div class="header-title-row">
       <span class="large-title">할 일</span>
 
-      <!-- 진행도 -->
       <div class="progress-area">
         <div class="progress-text">
           <span id="prog-done">0</span>/<span id="prog-total">0</span> 완료
@@ -694,7 +677,6 @@
       </div>
     </div>
 
-    <!-- 주간 단위 날짜 뷰 및 오늘 버튼 -->
     <div class="date-header-wrapper">
       <button id="date-display-btn" aria-label="날짜 선택">
         <span id="date-label-main">오늘</span>
@@ -703,9 +685,9 @@
       <button class="today-pin-btn" onclick="goToToday()">오늘</button>
     </div>
     
+    <!-- 주간 스트립 영역 -->
     <div id="weekly-strip" class="weekly-strip"></div>
 
-    <!-- 입력창 -->
     <div id="input-bar">
       <input id="todo-input" type="text" placeholder="새로운 할 일 추가" maxlength="80" autocomplete="off" autocorrect="off" spellcheck="false" />
       <button id="add-btn" aria-label="추가">
@@ -716,10 +698,8 @@
     </div>
   </div>
 
-  <!-- ──────── 콘텐츠 ──────── -->
   <div id="content"></div>
 
-  <!-- ──────── 하단 탭바 ──────── -->
   <div id="tab-bar">
     <button class="tab-btn active" data-tab="active" aria-label="진행 중">
       <div class="tab-icon">
@@ -742,9 +722,8 @@
     </button>
   </div>
 
-</div><!-- /#app -->
+</div>
 
-<!-- ──────── 삭제 확인 모달 ──────── -->
 <div id="delete-modal" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-text-wrap">
@@ -758,7 +737,6 @@
   </div>
 </div>
 
-<!-- ──────── 캘린더 시트 (이동 및 미루기 공용) ──────── -->
 <div id="calendar-sheet" role="dialog" aria-modal="true" aria-label="날짜 선택">
   <div class="sheet-backdrop" id="sheet-backdrop"></div>
   <div class="sheet-panel">
@@ -799,7 +777,7 @@ const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-$
 const today = () => fmt(new Date());
 
 /* ════════════════════════════════════════
-   데이터 — todos-YYYY-MM-DD 키로 분리 저장
+   데이터
 ════════════════════════════════════════ */
 function loadTodos(dateKey) {
   try {
@@ -824,19 +802,18 @@ function getAllStoredDates() {
    상태
 ════════════════════════════════════════ */
 let currentDate  = today();
-let currentTab   = 'active'; // 'active' | 'done'
+let currentTab   = 'active';
 let calViewYear  = new Date().getFullYear();
 let calViewMonth = new Date().getMonth();
 
 /* ════════════════════════════════════════
-   렌더
+   렌더링
 ════════════════════════════════════════ */
 function render() {
   const todos = loadTodos(currentDate);
   const active = todos.filter(t => !t.done);
   const done   = todos.filter(t => t.done);
 
-  // 진행도 업데이트
   const total = todos.length;
   const doneCount = done.length;
   $('prog-done').textContent = doneCount;
@@ -856,10 +833,7 @@ function render() {
 function renderSection(container, label, count, items, isDone) {
   const header = document.createElement('div');
   header.className = 'section-header';
-  header.innerHTML = `
-    <span class="section-title">${label}</span>
-    <span class="section-count">${count}</span>
-  `;
+  header.innerHTML = `<span class="section-title">${label}</span><span class="section-count">${count}</span>`;
   container.appendChild(header);
 
   const divider = document.createElement('div');
@@ -870,7 +844,6 @@ function renderSection(container, label, count, items, isDone) {
     container.appendChild(makeEmpty(isDone));
     return;
   }
-
   items.forEach((todo, idx) => {
     container.appendChild(makeCard(todo, idx, isDone));
   });
@@ -881,21 +854,13 @@ function makeEmpty(isDone) {
   el.className = 'empty-state';
   if (!isDone) {
     el.innerHTML = `
-      <div class="empty-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-        </svg>
-      </div>
+      <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
       <div class="empty-title">오늘의 할 일을 추가해 보세요</div>
       <div class="empty-sub">위 입력창에 할 일을 입력하고<br>+ 버튼을 누르면 바로 추가됩니다.</div>
     `;
   } else {
     el.innerHTML = `
-      <div class="empty-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
-      </div>
+      <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
       <div class="empty-title">아직 완료된 항목이 없어요</div>
       <div class="empty-sub">진행 중인 할 일을 체크하면<br>여기에 쌓여요.</div>
     `;
@@ -925,9 +890,7 @@ function makeCard(todo, idx, isDone) {
 
   card.innerHTML = `
     <button class="check-btn" data-action="${isDone ? 'undo' : 'complete'}" data-id="${todo.id}" aria-label="${isDone ? '되돌리기' : '완료'}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="20 6 9 17 4 12"/>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
     </button>
     ${textHtml}
     ${actionBtn}
@@ -935,9 +898,7 @@ function makeCard(todo, idx, isDone) {
 
   wrapper.appendChild(bg);
   wrapper.appendChild(card);
-
   setupSwipe(wrapper, card, todo.id);
-
   return wrapper;
 }
 
@@ -951,18 +912,13 @@ function escHtml(s) {
 function startEdit(id) {
   const el = $('text-' + id);
   if (!el || el.querySelector('input')) return; 
-
   const currentText = el.innerText;
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'edit-input';
   input.value = currentText;
-
   input.onblur = () => finishEdit(id, input.value);
-  input.onkeydown = (e) => {
-    if (e.key === 'Enter') input.blur();
-  };
-
+  input.onkeydown = (e) => { if (e.key === 'Enter') input.blur(); };
   el.innerHTML = '';
   el.appendChild(input);
   input.focus();
@@ -972,11 +928,8 @@ function finishEdit(id, newText) {
   const t = newText.trim();
   const todos = loadTodos(currentDate);
   const item = todos.find(x => x.id === id);
-  
   if (item) {
-    if (t && t !== item.text) {
-      item.text = t;
-    }
+    if (t && t !== item.text) item.text = t;
     saveTodos(currentDate, todos);
   }
   render(); 
@@ -993,54 +946,36 @@ function openDeleteModal(id, card) {
   deleteTargetCard = card;
   const modal = $('delete-modal');
   modal.style.display = 'flex';
-  requestAnimationFrame(() => {
-    modal.classList.add('show');
-  });
+  requestAnimationFrame(() => { modal.classList.add('show'); });
 }
 
 function closeDeleteModal() {
   const modal = $('delete-modal');
   modal.classList.remove('show');
-  
-  setTimeout(() => {
-    modal.style.display = 'none';
-  }, 200);
-
-  if (deleteTargetCard) {
-    deleteTargetCard.style.transform = 'translateX(0)';
-  }
+  setTimeout(() => { modal.style.display = 'none'; }, 200);
+  if (deleteTargetCard) deleteTargetCard.style.transform = 'translateX(0)';
   deleteTargetId = null;
   deleteTargetCard = null;
 }
 
 function executeDelete() {
-  if (deleteTargetId) {
-    deleteTodo(deleteTargetId);
-  }
+  if (deleteTargetId) deleteTodo(deleteTargetId);
   closeDeleteModal();
   updateWeeklyView(); 
 }
 
 /* ════════════════════════════════════════
-   스와이프 삭제 (모달 연결)
+   스와이프 및 인터랙션
 ════════════════════════════════════════ */
 function setupSwipe(wrapper, card, id) {
   let startX = 0, currentX = 0, swiping = false;
   const THRESHOLD = 80;
-
-  card.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-    swiping = true;
-  }, { passive: true });
-
+  card.addEventListener('touchstart', e => { startX = e.touches[0].clientX; swiping = true; }, { passive: true });
   card.addEventListener('touchmove', e => {
     if (!swiping) return;
     currentX = e.touches[0].clientX - startX;
-    if (currentX < 0) {
-      card.style.transform = `translateX(${Math.max(currentX, -120)}px)`;
-    }
+    if (currentX < 0) card.style.transform = `translateX(${Math.max(currentX, -120)}px)`;
   }, { passive: true });
-
   card.addEventListener('touchend', () => {
     if (!swiping) return;
     swiping = false;
@@ -1054,12 +989,9 @@ function setupSwipe(wrapper, card, id) {
   });
 }
 
-/* ════════════════════════════════════════
-   가로 스와이프 탭 이동
-════════════════════════════════════════ */
+// 탭 전환 가로 스와이프
 let globalSwipeStartX = 0;
 let globalSwipeStartY = 0;
-
 $('content').addEventListener('touchstart', e => {
   globalSwipeStartX = e.touches[0].clientX;
   globalSwipeStartY = e.touches[0].clientY;
@@ -1068,21 +1000,15 @@ $('content').addEventListener('touchstart', e => {
 $('content').addEventListener('touchend', e => {
   let diffX = e.changedTouches[0].clientX - globalSwipeStartX;
   let diffY = e.changedTouches[0].clientY - globalSwipeStartY;
-
   if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 60) {
-    if (e.target.closest('.task-card') && diffX < 0) {
-      return; 
-    }
-    if (diffX < -60 && currentTab === 'active') {
-      switchTab('done'); 
-    } else if (diffX > 60 && currentTab === 'done') {
-      switchTab('active'); 
-    }
+    if (e.target.closest('.task-card') && diffX < 0) return; 
+    if (diffX < -60 && currentTab === 'active') switchTab('done'); 
+    else if (diffX > 60 && currentTab === 'done') switchTab('active'); 
   }
 }, { passive: true });
 
 /* ════════════════════════════════════════
-   이벤트 위임 — 콘텐츠 전체
+   이벤트 위임
 ════════════════════════════════════════ */
 $('content').addEventListener('click', e => {
   const btn = e.target.closest('[data-action]');
@@ -1150,13 +1076,41 @@ $('todo-input').addEventListener('keydown', e => {
 });
 
 /* ════════════════════════════════════════
-   날짜 로직
+   날짜 로직 및 주간 스와이프 (중요 추가 항목)
 ════════════════════════════════════════ */
 function goToToday() {
   currentDate = today();
   updateWeeklyView();
   render();
 }
+
+// 주 단위 이동 함수
+function shiftWeek(weeks) {
+  const d = new Date(currentDate + 'T00:00:00');
+  d.setDate(d.getDate() + (weeks * 7));
+  currentDate = fmt(d);
+  updateWeeklyView();
+  render();
+}
+
+// 주간 스트립 가로 스와이프 이벤트 리스너 추가
+let stripStartX = 0;
+const stripEl = $('weekly-strip');
+
+stripEl.addEventListener('touchstart', e => {
+  stripStartX = e.touches[0].clientX;
+}, { passive: true });
+
+stripEl.addEventListener('touchend', e => {
+  const diffX = e.changedTouches[0].clientX - stripStartX;
+  const threshold = 60; 
+
+  if (Math.abs(diffX) > threshold) {
+    if (diffX > 0) shiftWeek(-1); // 오른쪽 스와이프 -> 이전 주
+    else shiftWeek(1);           // 왼쪽 스와이프 -> 다음 주
+  }
+}, { passive: true });
+
 
 function updateWeeklyView() {
   const d = new Date(currentDate + 'T00:00:00');
@@ -1170,7 +1124,6 @@ function updateWeeklyView() {
 
   const startOfWeek = new Date(d);
   startOfWeek.setDate(d.getDate() - diff);
-
   const days = ['월', '화', '수', '목', '금', '토', '일'];
 
   for(let i=0; i<7; i++) {
@@ -1184,11 +1137,9 @@ function updateWeeklyView() {
     if (dStr === today()) dayEl.classList.add('today');
 
     const dayClass = i === 6 ? ' sun' : (i === 5 ? ' sat' : '');
-    
     const todosForDay = loadTodos(dStr);
     let dotHtml = '';
     if (todosForDay.length > 0) {
-      // 진행중인 항목이 1개라도 있으면 빨강(danger), 전부 완료면 초록(success)
       const hasActiveTodo = todosForDay.some(t => !t.done);
       const dotColor = hasActiveTodo ? 'var(--danger)' : 'var(--success)';
       dotHtml = `<span class="has-todo-dot" style="background: ${dotColor};"></span>`;
@@ -1209,9 +1160,6 @@ function updateWeeklyView() {
   }
 }
 
-/* ════════════════════════════════════════
-   탭 전환 함수 및 버튼 바인딩
-════════════════════════════════════════ */
 function switchTab(tabId) {
   if (currentTab === tabId) return;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1221,9 +1169,7 @@ function switchTab(tabId) {
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    switchTab(btn.dataset.tab);
-  });
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
 /* ════════════════════════════════════════
@@ -1234,7 +1180,6 @@ let postponeTargetId = null;
 function openCalendar(isPostpone = false, todoId = null) {
   postponeTargetId = isPostpone ? todoId : null;
   $('sheet-title').style.display = isPostpone ? 'block' : 'none';
-
   const d = new Date(currentDate + 'T00:00:00');
   calViewYear  = d.getFullYear();
   calViewMonth = d.getMonth();
@@ -1257,17 +1202,13 @@ function closeCalendar() {
 function renderCalendar() {
   const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   $('sheet-month-label').textContent = `${calViewYear}년 ${months[calViewMonth]}`;
-
   const grid = $('cal-grid');
   grid.innerHTML = '';
-
   const storedDates = getAllStoredDates();
   const todayStr = today();
-
   const firstDay  = new Date(calViewYear, calViewMonth, 1).getDay(); 
   const daysInMonth = new Date(calViewYear, calViewMonth+1, 0).getDate();
   const prevDays   = new Date(calViewYear, calViewMonth, 0).getDate();
-
   const firstDayGridIndex = firstDay === 0 ? 6 : firstDay - 1; 
 
   for (let i = firstDayGridIndex - 1; i >= 0; i--) {
@@ -1282,22 +1223,15 @@ function renderCalendar() {
     const cell = document.createElement('div');
     cell.className = 'cal-cell';
     cell.textContent = d;
-
     if (dateStr === todayStr) cell.classList.add('today');
     if (dateStr === currentDate) cell.classList.add('selected');
-    
-    // 달력 모달의 닷(dot) 색상 처리
     if (storedDates.includes(dateStr)) {
       const todos = loadTodos(dateStr);
       if (todos.length > 0) {
-        if (todos.some(t => !t.done)) {
-          cell.classList.add('has-active');
-        } else {
-          cell.classList.add('has-done-only');
-        }
+        if (todos.some(t => !t.done)) cell.classList.add('has-active');
+        else cell.classList.add('has-done-only');
       }
     }
-
     cell.addEventListener('click', () => {
       if (postponeTargetId) {
         if (dateStr !== currentDate) {
@@ -1306,7 +1240,6 @@ function renderCalendar() {
           if (itemIndex > -1) {
             const item = currentTodos.splice(itemIndex, 1)[0];
             saveTodos(currentDate, currentTodos);
-
             const targetTodos = loadTodos(dateStr);
             targetTodos.push(item);
             saveTodos(dateStr, targetTodos);
@@ -1316,8 +1249,7 @@ function renderCalendar() {
         closeCalendar();
         updateWeeklyView();
         render();
-      } 
-      else {
+      } else {
         currentDate = dateStr;
         updateWeeklyView();
         render();
@@ -1339,13 +1271,11 @@ function renderCalendar() {
 
 $('date-display-btn').addEventListener('click', () => openCalendar(false));
 $('sheet-backdrop').addEventListener('click', closeCalendar);
-
 $('prev-month').addEventListener('click', () => {
   calViewMonth--;
   if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
   renderCalendar();
 });
-
 $('next-month').addEventListener('click', () => {
   calViewMonth++;
   if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
@@ -1366,7 +1296,6 @@ if ('serviceWorker' in navigator) {
       });
     });
   });
-
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!refreshing) { refreshing = true; window.location.reload(); }
