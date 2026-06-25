@@ -6,28 +6,19 @@
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="할 일" />
   <title>할 일</title>
 
   <style>
-    /* ── 구글 폰트 ── */
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
 
-    /* ── CSS 변수 ── */
     :root {
       --safe-top: env(safe-area-inset-top, 44px);
       --safe-bottom: env(safe-area-inset-bottom, 20px);
-      --safe-left: env(safe-area-inset-left, 0px);
-      --safe-right: env(safe-area-inset-right, 0px);
-
       --bg: #F2F2F7;
       --surface: #FFFFFF;
-      --surface2: #F2F2F7;
       --accent: #007AFF;
-      --accent-light: rgba(0, 122, 255, 0.10);
       --danger: #FF3B30;
       --success: #34C759;
-      --warning: #FF9500;
       --label: #1C1C1E;
       --label2: #3C3C43;
       --label3: #8E8E93;
@@ -35,536 +26,427 @@
       --radius: 14px;
     }
 
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0; padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     html, body {
-      width: 100%; height: 100vh;
-      min-height: -webkit-fill-available;
-      overflow: hidden;
-      font-family: 'Noto Sans KR', -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--label);
-      -webkit-font-smoothing: antialiased;
+      width: 100%; height: 100vh; min-height: -webkit-fill-available;
+      overflow: hidden; font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg); color: var(--label); -webkit-font-smoothing: antialiased;
     }
 
-    #app {
-      display: flex; flex-direction: column;
-      width: 100%; height: 100vh;
-      min-height: -webkit-fill-available;
-      overflow: hidden;
-    }
+    #app { display: flex; flex-direction: column; width: 100%; height: 100vh; min-height: -webkit-fill-available; }
 
-    /* ── 상단 헤더 ── */
+    /* ── Header ── */
     #header {
-      flex-shrink: 0;
-      background: rgba(242,242,247,0.85);
-      backdrop-filter: saturate(180%) blur(20px);
-      -webkit-backdrop-filter: saturate(180%) blur(20px);
-      padding-top: calc(var(--safe-top) + 8px);
-      padding-left: calc(20px + var(--safe-left));
-      padding-right: calc(20px + var(--safe-right));
-      z-index: 100;
+      flex-shrink: 0; background: rgba(242,242,247,0.8); backdrop-filter: blur(20px);
+      padding-top: calc(var(--safe-top) + 8px); padding-left: 20px; padding-right: 20px; z-index: 100;
     }
-
-    .header-title-row {
-      display: flex; align-items: flex-end; justify-content: space-between;
-      padding-bottom: 8px; min-height: 56px; padding-top: 8px;
-    }
-
-    .large-title { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
-
+    .header-title-row { display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 8px; min-height: 56px; }
+    .large-title { font-size: 32px; font-weight: 700; }
     .progress-area { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-    .progress-text { font-size: 12px; font-weight: 500; color: var(--label3); }
-    .progress-text span { color: var(--accent); font-weight: 600; }
-    .progress-bar-wrap { width: 100px; height: 5px; background: var(--separator); border-radius: 99px; overflow: hidden; }
-    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #34AADC); transition: width 0.4s cubic-bezier(.4,0,.2,1); }
+    .progress-text { font-size: 12px; color: var(--label3); }
+    .progress-bar-wrap { width: 80px; height: 5px; background: var(--separator); border-radius: 99px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: var(--accent); transition: width 0.4s ease; }
 
     .date-header-wrapper { display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 12px; }
-    #date-display-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-    #date-label-main { font-size: 18px; font-weight: 700; color: var(--label); }
+    #date-label-main { font-size: 18px; font-weight: 700; }
+    .today-pin-btn { background: rgba(120,120,128,0.1); border: none; border-radius: 10px; padding: 6px 12px; font-size: 13px; font-weight: 600; }
 
-    .today-pin-btn {
-      background: rgba(120,120,128,0.12); border: none; border-radius: 12px;
-      font-size: 13px; font-weight: 600; color: var(--label2); padding: 6px 12px;
-    }
-
-    /* ── 주간 스트립 (스와이프 가능) ── */
-    .weekly-strip {
-      display: flex; justify-content: space-between; padding: 0 4px 14px;
-      touch-action: pan-x; user-select: none;
-    }
-    .week-day { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 14%; position: relative; cursor: pointer; }
-    .week-day-name { font-size: 12px; font-weight: 500; color: var(--label3); }
-    .week-day-name.sun { color: var(--danger); }
-    .week-day-name.sat { color: var(--accent); }
-    .week-day-num {
-      font-size: 16px; font-weight: 600; width: 32px; height: 32px;
-      display: flex; align-items: center; justify-content: center; border-radius: 50%;
-    }
-    .week-day.today .week-day-num { color: var(--accent); }
+    /* ── Weekly Strip ── */
+    .weekly-strip { display: flex; justify-content: space-between; padding: 0 4px 14px; touch-action: pan-x; }
+    .week-day { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 14%; position: relative; cursor: pointer; }
+    .week-day-num { font-size: 16px; font-weight: 600; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
     .week-day.selected .week-day-num { background: var(--accent); color: #fff; }
-    .has-todo-dot { position: absolute; bottom: -6px; width: 4px; height: 4px; border-radius: 50%; }
+    .has-todo-dot { position: absolute; bottom: -4px; width: 4px; height: 4px; border-radius: 50%; }
 
-    /* ── 입력창 (반복 버튼 추가) ── */
+    /* ── Input Bar ── */
     #input-bar {
-      display: flex; align-items: center; gap: 8px;
-      background: var(--surface); border-radius: var(--radius);
-      padding: 6px 8px 6px 8px; margin-bottom: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      display: flex; align-items: center; gap: 10px; background: var(--surface);
+      border-radius: var(--radius); padding: 8px 8px 8px 16px; margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    #recurring-toggle {
-      display: flex; align-items: center; gap: 4px;
-      background: var(--bg); border: none; border-radius: 10px;
-      padding: 6px 10px; font-size: 12px; font-weight: 600;
-      color: var(--label2); white-space: nowrap; cursor: pointer;
-    }
-    #recurring-toggle.active { color: var(--accent); background: var(--accent-light); }
-    #todo-input {
-      flex: 1; border: none; outline: none; background: transparent;
-      font-size: 15px; font-family: inherit;
-    }
-    #add-btn {
-      width: 34px; height: 34px; border: none; border-radius: 50%;
-      background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center;
-    }
+    #todo-input { flex: 1; border: none; outline: none; font-size: 16px; background: transparent; }
+    #add-btn { width: 34px; height: 34px; border: none; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; }
 
-    /* ── 리스트 영역 ── */
-    #content {
-      flex: 1; overflow-y: auto; overflow-x: hidden;
-      -webkit-overflow-scrolling: touch; padding: 0 16px 16px;
-    }
-    .section-header { display: flex; align-items: baseline; gap: 7px; padding: 18px 4px 8px; }
-    .section-title { font-size: 13px; font-weight: 600; color: var(--label2); text-transform: uppercase; }
-    .section-count { font-size: 12px; font-weight: 500; color: var(--label3); background: rgba(120,120,128,0.12); padding: 1px 7px; border-radius: 99px; }
-    .section-divider { height: 1px; background: var(--separator); margin: 6px 4px 8px; }
-
-    .task-wrapper { position: relative; border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
+    /* ── Content ── */
+    #content { flex: 1; overflow-y: auto; padding: 0 16px 16px; }
+    .task-wrapper { position: relative; border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     .swipe-bg { position: absolute; inset: 0; background: var(--danger); display: flex; align-items: center; justify-content: flex-end; padding-right: 20px; color: #fff; font-size: 13px; font-weight: 600; }
-    .task-card {
-      position: relative; z-index: 1; background: var(--surface);
-      display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-      transition: transform 0.2s; touch-action: pan-x pan-y;
-    }
+    .task-card { position: relative; z-index: 1; background: var(--surface); display: flex; align-items: center; gap: 12px; padding: 14px 16px; transition: transform 0.2s; }
     .task-card.done .task-text { text-decoration: line-through; color: var(--label3); }
-    .check-btn {
-      width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--separator);
-      background: transparent; display: flex; align-items: center; justify-content: center;
-    }
+    .check-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--separator); background: transparent; display: flex; align-items: center; justify-content: center; }
     .task-card.done .check-btn { background: var(--success); border-color: var(--success); }
-    .task-text { flex: 1; font-size: 15px; line-height: 1.4; display: flex; align-items: center; gap: 6px; }
-    .recurring-icon { font-size: 12px; opacity: 0.6; }
-    .card-text-btn { font-size: 12px; color: var(--accent); background: none; border: none; font-weight: 500; }
+    .task-text { flex: 1; font-size: 16px; display: flex; flex-direction: column; gap: 2px; }
+    .task-meta { font-size: 11px; color: var(--label3); display: flex; gap: 6px; }
 
-    /* ── 하단 탭바 ── */
-    #tab-bar {
-      flex-shrink: 0; background: rgba(249,249,249,0.94); backdrop-filter: blur(20px);
-      border-top: 1px solid var(--separator); display: flex;
-      height: calc(64px + var(--safe-bottom)); padding-bottom: var(--safe-bottom);
+    /* ── Detail Modal (상세보기) ── */
+    .detail-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000;
+      display: none; align-items: flex-end; opacity: 0; transition: opacity 0.3s;
     }
-    .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: none; background: none; color: var(--label3); }
+    .detail-overlay.show { display: flex; opacity: 1; }
+    .detail-sheet {
+      width: 100%; background: #fff; border-radius: 20px 20px 0 0;
+      padding: 20px 20px calc(var(--safe-bottom) + 20px); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .detail-overlay.show .detail-sheet { transform: translateY(0); }
+    .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .detail-title { font-size: 19px; font-weight: 700; }
+    .detail-close { color: var(--accent); font-weight: 600; cursor: pointer; border: none; background: none; }
+
+    .detail-section { margin-bottom: 24px; }
+    .detail-section-label { font-size: 13px; font-weight: 600; color: var(--label3); margin-bottom: 10px; display: block; }
+    
+    .recurring-options { display: flex; gap: 8px; flex-wrap: wrap; }
+    .rec-opt { padding: 8px 14px; border-radius: 10px; background: var(--bg); font-size: 13px; font-weight: 500; cursor: pointer; }
+    .rec-opt.active { background: var(--accent); color: #fff; }
+
+    /* 하위 할 일 */
+    .subtask-list { display: flex; flex-direction: column; gap: 8px; }
+    .subtask-item { display: flex; align-items: center; gap: 10px; background: var(--bg); padding: 10px 12px; border-radius: 10px; }
+    .subtask-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--success); }
+    .subtask-item input[type="text"] { flex: 1; border: none; background: transparent; font-size: 14px; outline: none; }
+    .subtask-del { color: var(--danger); font-size: 12px; font-weight: 600; border: none; background: none; }
+    .subtask-add-btn { width: 100%; padding: 12px; border: 1px dashed var(--separator); border-radius: 10px; background: none; color: var(--accent); font-size: 14px; font-weight: 600; margin-top: 8px; }
+
+    /* ── Tab Bar ── */
+    #tab-bar {
+      flex-shrink: 0; background: rgba(249,249,249,0.9); backdrop-filter: blur(20px);
+      border-top: 1px solid var(--separator); display: flex; height: calc(64px + var(--safe-bottom)); padding-bottom: var(--safe-bottom);
+    }
+    .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: none; background: none; color: var(--label3); }
     .tab-btn.active { color: var(--accent); }
     .tab-label { font-size: 10px; font-weight: 500; }
 
-    /* ── 모달 & 시트 ── */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-      z-index: 10000; display: none; align-items: center; justify-content: center;
-      opacity: 0; transition: opacity 0.2s;
-    }
-    .modal-overlay.show { display: flex; opacity: 1; }
-    .modal-box { background: #fff; width: 270px; border-radius: 14px; overflow: hidden; text-align: center; }
-    .modal-text-wrap { padding: 20px 16px; }
-    .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
-    .modal-desc { font-size: 13px; color: var(--label2); line-height: 1.4; }
-    .modal-actions { display: flex; flex-direction: column; border-top: 0.5px solid var(--separator); }
-    .modal-btn { padding: 12px; background: none; border: none; font-size: 17px; border-bottom: 0.5px solid var(--separator); cursor: pointer; }
-    .modal-btn:last-child { border-bottom: none; }
-    .modal-btn.delete { color: var(--danger); font-weight: 600; }
-    .modal-btn.cancel { color: var(--accent); }
-
-    #calendar-sheet {
-      position: fixed; inset: 0; z-index: 9999; display: none; align-items: flex-end;
-    }
-    #calendar-sheet.open { display: flex; }
-    .sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); }
-    .sheet-panel {
-      position: relative; background: #fff; width: 100%; border-radius: 20px 20px 0 0;
-      padding: 16px 20px calc(var(--safe-bottom) + 20px); transform: translateY(100%); transition: transform 0.3s;
-    }
-    #calendar-sheet.open .sheet-panel { transform: translateY(0); }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-    .cal-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 14px; border-radius: 50%; }
-    .cal-cell.selected { background: var(--accent); color: #fff; }
-
-    .empty-state { padding: 60px 20px; text-align: center; color: var(--label3); }
-
-    @keyframes slideUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
-    .task-wrapper { animation: slideUp 0.3s ease-out both; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .task-wrapper { animation: slideIn 0.3s ease-out both; }
   </style>
 </head>
-
 <body>
+
 <div id="app">
-  <div id="header">
+  <header id="header">
     <div class="header-title-row">
       <span class="large-title">할 일</span>
       <div class="progress-area">
-        <div class="progress-text"><span id="prog-done">0</span>/<span id="prog-total">0</span> 완료</div>
-        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-bar" style="width:0%"></div></div>
+        <div class="progress-text"><span id="prog-done">0</span>/<span id="prog-total">0</span></div>
+        <div class="progress-bar-wrap"><div id="prog-bar" class="progress-bar-fill"></div></div>
       </div>
     </div>
     <div class="date-header-wrapper">
-      <button id="date-display-btn">
-        <span id="date-label-main">오늘</span>
-        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
+      <span id="date-label-main">2023년 10월</span>
       <button class="today-pin-btn" onclick="goToToday()">오늘</button>
     </div>
     <div id="weekly-strip" class="weekly-strip"></div>
     <div id="input-bar">
-      <button id="recurring-toggle" onclick="cycleRecurring()">🔁 안 함</button>
-      <input id="todo-input" type="text" placeholder="새로운 할 일 추가" maxlength="50" />
-      <button id="add-btn" onclick="handleAddTask()">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#fff" fill="none" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </button>
+      <input id="todo-input" type="text" placeholder="새로운 할 일" />
+      <button id="add-btn" onclick="addTask()"><svg viewBox="0 0 24 24" width="20" height="20" stroke="#fff" fill="none" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
     </div>
-  </div>
+  </header>
 
   <div id="content"></div>
 
-  <div id="tab-bar">
+  <nav id="tab-bar">
     <button class="tab-btn active" onclick="switchTab('active')">
-      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
       <span class="tab-label">진행 중</span>
     </button>
     <button class="tab-btn" onclick="switchTab('done')">
-      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       <span class="tab-label">완료됨</span>
     </button>
-  </div>
+  </nav>
 </div>
 
-<!-- 삭제 확인 모달 -->
-<div id="delete-modal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-text-wrap">
-      <div class="modal-title">할 일 삭제</div>
-      <div id="delete-msg" class="modal-desc">정말로 삭제하시겠습니까?</div>
+<!-- 상세 설정 모달 -->
+<div id="detail-modal" class="detail-overlay">
+  <div class="detail-sheet" onclick="event.stopPropagation()">
+    <div class="detail-header">
+      <span class="detail-title">할 일 설정</span>
+      <button class="detail-close" onclick="closeDetail()">완료</button>
     </div>
-    <div class="modal-actions" id="delete-actions">
-      <!-- 동적 생성 -->
+    
+    <div class="detail-section">
+      <span class="detail-section-label">반복 주기</span>
+      <div class="recurring-options">
+        <div class="rec-opt" data-val="none" onclick="setRecur('none')">안 함</div>
+        <div class="rec-opt" data-val="daily" onclick="setRecur('daily')">매일</div>
+        <div class="rec-opt" data-val="weekly" onclick="setRecur('weekly')">매주</div>
+        <div class="rec-opt" data-val="monthly" onclick="setRecur('monthly')">매월</div>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- 캘린더 시트 -->
-<div id="calendar-sheet">
-  <div class="sheet-backdrop" onclick="closeCalendar()"></div>
-  <div class="sheet-panel">
-    <div class="cal-grid" id="cal-grid"></div>
+    <div class="detail-section">
+      <span class="detail-section-label">하위 할 일 (체크리스트)</span>
+      <div id="subtask-container" class="subtask-list"></div>
+      <button class="subtask-add-btn" onclick="addSubtask()">+ 항목 추가</button>
+    </div>
   </div>
 </div>
 
 <script>
-/* ════════════════════════════════════════
-   기초 데이터 및 상태
-════════════════════════════════════════ */
 const $ = id => document.getElementById(id);
-const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-const today = () => fmt(new Date());
-
-let currentDate = today();
+const fmt = d => d.toISOString().split('T')[0];
+let currentDate = fmt(new Date());
 let currentTab = 'active';
-let recurringType = 'none'; // none, daily, weekly, monthly, yearly
-const recurringLabels = { none: '안 함', daily: '매일', weekly: '매주', monthly: '매월', yearly: '매년' };
+let editingId = null;
 
-/* ════════════════════════════════════════
-   저장소 로직
-════════════════════════════════════════ */
-// 일반/인스턴스 할 일 로드
-const getRawTodos = (date) => JSON.parse(localStorage.getItem('todos-' + date) || '[]');
-const saveRawTodos = (date, list) => localStorage.setItem('todos-' + date, JSON.stringify(list));
+// 데이터 구조: { id, text, done, recurring, subTasks: [{text, done}] }
+function getRawTodos(date) { return JSON.parse(localStorage.getItem('todos-' + date) || '[]'); }
+function saveRawTodos(date, list) { localStorage.setItem('todos-' + date, JSON.stringify(list)); }
+function getRules() { return JSON.parse(localStorage.getItem('recurring-rules') || '[]'); }
+function saveRules(rules) { localStorage.setItem('recurring-rules', JSON.stringify(rules)); }
 
-// 반복 규칙 로드
-const getRules = () => JSON.parse(localStorage.getItem('recurring-rules') || '[]');
-const saveRules = (rules) => localStorage.setItem('recurring-rules', JSON.stringify(rules));
-
-// 병합된 할 일 가져오기 (규칙 + 오늘 데이터)
 function loadMergedTodos(date) {
+  const d = new Date(date);
   const rules = getRules();
-  const instances = getRawTodos(date); // {ruleId: '...', done: true} 또는 {id: '...', text: '...', done: false}
+  const instances = getRawTodos(date);
   
-  const d = new Date(date + 'T00:00:00');
-  
-  // 1. 해당 날짜에 적용되는 반복 규칙들을 할 일 객체로 변환
-  const merged = rules.filter(rule => {
-    const start = new Date(rule.startDate + 'T00:00:00');
-    if (d < start) return false; // 시작일 전이면 안보임
-
-    if (rule.type === 'daily') return true;
-    if (rule.type === 'weekly') return d.getDay() === start.getDay();
-    if (rule.type === 'monthly') return d.getDate() === start.getDate();
-    if (rule.type === 'yearly') return d.getMonth() === start.getMonth() && d.getDate() === start.getDate();
+  const merged = rules.filter(r => {
+    const start = new Date(r.startDate);
+    if (d < start) return false;
+    if (r.recurring === 'daily') return true;
+    if (r.recurring === 'weekly') return d.getDay() === start.getDay();
+    if (r.recurring === 'monthly') return d.getDate() === start.getDate();
     return false;
-  }).map(rule => {
-    // 이미 해당 날짜에 완료/미완료 기록이 있는지 확인
-    const inst = instances.find(i => i.ruleId === rule.id);
-    return {
-      id: rule.id,
-      ruleId: rule.id,
-      text: rule.text,
-      done: inst ? inst.done : false,
-      isRecurring: true
-    };
+  }).map(r => {
+    const inst = instances.find(i => i.ruleId === r.id);
+    return { ...r, id: r.id, ruleId: r.id, done: inst ? inst.done : false, subTasks: inst ? inst.subTasks : r.subTasks, isRecurring: true };
   });
 
-  // 2. 반복이 아닌 일반 할 일 추가
   instances.filter(i => !i.ruleId).forEach(i => merged.push({...i, isRecurring: false}));
-  
   return merged;
 }
 
-/* ════════════════════════════════════════
-   기능 로직
-════════════════════════════════════════ */
-function cycleRecurring() {
-  const types = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
-  let idx = types.indexOf(recurringType);
-  recurringType = types[(idx + 1) % types.length];
-  $('recurring-toggle').textContent = '🔁 ' + recurringLabels[recurringType];
-  $('recurring-toggle').classList.toggle('active', recurringType !== 'none');
-}
-
-function handleAddTask() {
-  const text = $('todo-input').value.trim();
-  if (!text) return;
-
-  if (recurringType === 'none') {
-    const todos = getRawTodos(currentDate);
-    todos.push({ id: 't-' + Date.now(), text, done: false });
-    saveRawTodos(currentDate, todos);
-  } else {
-    const rules = getRules();
-    rules.push({ id: 'r-' + Date.now(), text, type: recurringType, startDate: currentDate });
-    saveRules(rules);
-  }
-
-  $('todo-input').value = '';
-  render();
-  updateWeeklyView();
-}
-
-function toggleTodo(id, isRecurring) {
-  const todos = getRawTodos(currentDate);
-  if (isRecurring) {
-    let inst = todos.find(i => i.ruleId === id);
-    if (inst) inst.done = !inst.done;
-    else todos.push({ ruleId: id, done: true });
-  } else {
-    let todo = todos.find(i => i.id === id);
-    if (todo) todo.done = !todo.done;
-  }
-  saveRawTodos(currentDate, todos);
-  render();
-  updateWeeklyView();
-}
-
-/* ════════════════════════════════════════
-   삭제 처리 (모달)
-════════════════════════════════════════ */
-let deleteInfo = null;
-
-function requestDelete(id, isRecurring) {
-  deleteInfo = { id, isRecurring };
-  const modal = $('delete-modal');
-  const actions = $('delete-actions');
-  actions.innerHTML = '';
-
-  if (isRecurring) {
-    $('delete-msg').textContent = "반복 할 일입니다. 어떻게 삭제할까요?";
-    actions.innerHTML = `
-      <button class="modal-btn delete" onclick="executeDelete('today')">오늘만 삭제</button>
-      <button class="modal-btn delete" onclick="executeDelete('all')">전체 일정 삭제</button>
-      <button class="modal-btn cancel" onclick="closeModal()">취소</button>
-    `;
-  } else {
-    $('delete-msg').textContent = "이 할 일을 삭제하시겠습니까?";
-    actions.innerHTML = `
-      <button class="modal-btn delete" onclick="executeDelete('normal')">삭제</button>
-      <button class="modal-btn cancel" onclick="closeModal()">취소</button>
-    `;
-  }
-  modal.style.display = 'flex';
-  setTimeout(() => modal.classList.add('show'), 10);
-}
-
-function executeDelete(mode) {
-  const { id, isRecurring } = deleteInfo;
-  if (mode === 'normal') {
-    const todos = getRawTodos(currentDate).filter(i => i.id !== id);
-    saveRawTodos(currentDate, todos);
-  } else if (mode === 'today') {
-    // 오늘 데이터에 '삭제됨' 마킹 (여기서는 간단히 ruleId 매칭 안되게 처리하거나 생략 가능하지만, 
-    // 실제로는 'hidden' 상태를 저장하는게 정확함. 편의상 instances에서 제외)
-    // 이 예제에서는 간단히 '오늘의 기록'에서만 제거
-  } else if (mode === 'all') {
-    const rules = getRules().filter(r => r.id !== id);
-    saveRules(rules);
-    // 관련 인스턴스들도 정리
-    // (생략 가능: rule이 없으면 어차피 안 나타남)
-  }
-  closeModal();
-  render();
-  updateWeeklyView();
-}
-
-function closeModal() {
-  $('delete-modal').classList.remove('show');
-  setTimeout(() => $('delete-modal').style.display = 'none', 200);
-  render(); // 스와이프 복구용
-}
-
-/* ════════════════════════════════════════
-   UI 렌더링
-════════════════════════════════════════ */
 function render() {
   const all = loadMergedTodos(currentDate);
-  const active = all.filter(t => !t.done);
-  const done = all.filter(t => t.done);
-
-  $('prog-done').textContent = done.length;
+  const list = all.filter(t => currentTab === 'active' ? !t.done : t.done);
+  
+  const doneCount = all.filter(t => t.done).length;
+  $('prog-done').textContent = doneCount;
   $('prog-total').textContent = all.length;
-  $('prog-bar').style.width = all.length ? (done.length / all.length * 100) + '%' : '0%';
+  $('prog-bar').style.width = all.length ? (doneCount / all.length * 100) + '%' : '0%';
 
   const container = $('content');
-  container.innerHTML = '';
-
-  const list = currentTab === 'active' ? active : done;
-  if (list.length === 0) {
-    container.innerHTML = `<div class="empty-state">${currentTab === 'active' ? '진행 중인 일이 없습니다.' : '완료된 일이 없습니다.'}</div>`;
-    return;
-  }
-
-  const header = document.createElement('div');
-  header.className = 'section-header';
-  header.innerHTML = `<span class="section-title">${currentTab === 'active' ? '진행 중' : '완료됨'}</span><span class="section-count">${list.length}</span>`;
-  container.appendChild(header);
-  container.appendChild(Object.assign(document.createElement('div'), {className:'section-divider'}));
+  container.innerHTML = list.length ? '' : '<div style="text-align:center; padding:40px; color:#8e8e93;">일정이 없습니다.</div>';
 
   list.forEach(todo => {
+    const subDone = todo.subTasks.filter(s => s.done).length;
+    const subTotal = todo.subTasks.length;
+    const meta = `
+      ${todo.isRecurring ? '<span>🔁 '+todo.recurring+'</span>' : ''}
+      ${subTotal > 0 ? '<span>✅ '+subDone+'/'+subTotal+'</span>' : ''}
+    `;
+
     const wrap = document.createElement('div');
     wrap.className = 'task-wrapper';
     wrap.innerHTML = `
-      <div class="swipe-bg">삭제</div>
-      <div class="task-card ${todo.done ? 'done' : ''}" id="card-${todo.id}">
-        <div class="check-btn" onclick="toggleTodo('${todo.id}', ${todo.isRecurring})">
+      <div class="swipe-bg" onclick="deleteTodo('${todo.id}', ${todo.isRecurring})">삭제</div>
+      <div class="task-card ${todo.done ? 'done' : ''}" onclick="openDetail('${todo.id}', ${todo.isRecurring})">
+        <div class="check-btn" onclick="event.stopPropagation(); toggleTodo('${todo.id}', ${todo.isRecurring})">
           ${todo.done ? '<svg viewBox="0 0 24 24" width="14" height="14" stroke="#fff" fill="none" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
         </div>
         <div class="task-text">
-          ${todo.isRecurring ? '<span class="recurring-icon">🔁</span>' : ''}
-          ${todo.text}
+          <span>${todo.text}</span>
+          ${meta ? `<div class="task-meta">${meta}</div>` : ''}
         </div>
       </div>
     `;
-    setupSwipe(wrap, todo.id, todo.isRecurring);
+    setupSwipe(wrap);
     container.appendChild(wrap);
   });
 }
 
-function setupSwipe(wrap, id, isRec) {
-  const card = wrap.querySelector('.task-card');
-  let startX = 0, currentX = 0;
-  card.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive:true});
-  card.addEventListener('touchmove', e => {
-    currentX = e.touches[0].clientX - startX;
-    if (currentX < 0) card.style.transform = `translateX(${Math.max(currentX, -80)}px)`;
-  }, {passive:true});
-  card.addEventListener('touchend', () => {
-    if (currentX < -50) {
-      card.style.transform = `translateX(-80px)`;
-      requestDelete(id, isRec);
-    } else {
-      card.style.transform = `translateX(0)`;
-    }
-    currentX = 0;
+function addTask() {
+  const text = $('todo-input').value.trim();
+  if (!text) return;
+  const todos = getRawTodos(currentDate);
+  todos.push({ id: 't-' + Date.now(), text, done: false, recurring: 'none', subTasks: [] });
+  saveRawTodos(currentDate, todos);
+  $('todo-input').value = '';
+  render(); updateWeeklyView();
+}
+
+function toggleTodo(id, isRec) {
+  const todos = getRawTodos(currentDate);
+  if (isRec) {
+    let inst = todos.find(i => i.ruleId === id);
+    if (!inst) {
+      const rule = getRules().find(r => r.id === id);
+      todos.push({ ruleId: id, done: true, subTasks: JSON.parse(JSON.stringify(rule.subTasks)) });
+    } else { inst.done = !inst.done; }
+  } else {
+    let t = todos.find(i => i.id === id);
+    t.done = !t.done;
+  }
+  saveRawTodos(currentDate, todos);
+  render();
+}
+
+/* ── 상세보기 & 하위 할 일 ── */
+function openDetail(id, isRec) {
+  editingId = id;
+  const all = loadMergedTodos(currentDate);
+  const todo = all.find(t => t.id === id);
+  
+  document.querySelectorAll('.rec-opt').forEach(el => el.classList.toggle('active', el.dataset.val === todo.recurring));
+  renderSubtasks(todo.subTasks);
+
+  $('detail-modal').style.display = 'flex';
+  setTimeout(() => $('detail-modal').classList.add('show'), 10);
+}
+
+function closeDetail() {
+  $('detail-modal').classList.remove('show');
+  setTimeout(() => $('detail-modal').style.display = 'none', 300);
+  render();
+}
+
+function setRecur(val) {
+  const rules = getRules();
+  const todos = getRawTodos(currentDate);
+  const todo = loadMergedTodos(currentDate).find(t => t.id === editingId);
+
+  if (todo.isRecurring) {
+    const rule = rules.find(r => r.id === editingId);
+    rule.recurring = val;
+  } else if (val !== 'none') {
+    // 일반 항목을 반복 규칙으로 승격
+    const tIdx = todos.findIndex(i => i.id === editingId);
+    const item = todos.splice(tIdx, 1)[0];
+    rules.push({ ...item, recurring: val, startDate: currentDate });
+    saveRawTodos(currentDate, todos);
+  }
+  saveRules(rules);
+  closeDetail();
+}
+
+function renderSubtasks(subs) {
+  const cont = $('subtask-container');
+  cont.innerHTML = '';
+  subs.forEach((s, idx) => {
+    const div = document.createElement('div');
+    div.className = 'subtask-item';
+    div.innerHTML = `
+      <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleSub(${idx})">
+      <input type="text" value="${s.text}" onchange="editSub(${idx}, this.value)">
+      <button class="subtask-del" onclick="delSub(${idx})">삭제</button>
+    `;
+    cont.appendChild(div);
   });
 }
 
+function addSubtask() {
+  const all = loadMergedTodos(currentDate);
+  const todo = all.find(t => t.id === editingId);
+  todo.subTasks.push({ text: '', done: false });
+  updateSubData(todo);
+}
+
+function toggleSub(idx) {
+  const todo = loadMergedTodos(currentDate).find(t => t.id === editingId);
+  todo.subTasks[idx].done = !todo.subTasks[idx].done;
+  updateSubData(todo);
+}
+
+function editSub(idx, val) {
+  const todo = loadMergedTodos(currentDate).find(t => t.id === editingId);
+  todo.subTasks[idx].text = val;
+  updateSubData(todo);
+}
+
+function delSub(idx) {
+  const todo = loadMergedTodos(currentDate).find(t => t.id === editingId);
+  todo.subTasks.splice(idx, 1);
+  updateSubData(todo);
+}
+
+function updateSubData(todo) {
+  if (todo.isRecurring) {
+    const rules = getRules();
+    const r = rules.find(rules => rules.id === todo.ruleId);
+    r.subTasks = todo.subTasks;
+    saveRules(rules);
+    // 오늘치 인스턴스가 있으면 거기도 업데이트
+    const todos = getRawTodos(currentDate);
+    const inst = todos.find(i => i.ruleId === todo.id);
+    if (inst) { inst.subTasks = todo.subTasks; saveRawTodos(currentDate, todos); }
+  } else {
+    const todos = getRawTodos(currentDate);
+    const t = todos.find(i => i.id === editingId);
+    t.subTasks = todo.subTasks;
+    saveRawTodos(currentDate, todos);
+  }
+  renderSubtasks(todo.subTasks);
+}
+
+function deleteTodo(id, isRec) {
+  if (isRec) {
+    const rules = getRules().filter(r => r.id !== id);
+    saveRules(rules);
+  } else {
+    const todos = getRawTodos(currentDate).filter(t => t.id !== id);
+    saveRawTodos(currentDate, todos);
+  }
+  render(); updateWeeklyView();
+}
+
+function setupSwipe(wrap) {
+  const card = wrap.querySelector('.task-card');
+  let startX = 0, currentX = 0;
+  card.ontouchstart = e => startX = e.touches[0].clientX;
+  card.ontouchmove = e => {
+    currentX = e.touches[0].clientX - startX;
+    if (currentX < 0) card.style.transform = `translateX(${Math.max(currentX, -80)}px)`;
+  };
+  card.ontouchend = () => {
+    if (currentX < -50) card.style.transform = `translateX(-80px)`;
+    else card.style.transform = `translateX(0)`;
+    currentX = 0;
+  };
+}
+
 function updateWeeklyView() {
-  const d = new Date(currentDate + 'T00:00:00');
-  $('date-label-main').textContent = `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
-  const strip = $('weekly-strip');
-  strip.innerHTML = '';
-  
-  let start = new Date(d);
+  const d = new Date(currentDate);
+  $('date-label-main').textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월`;
+  const strip = $('weekly-strip'); strip.innerHTML = '';
+  const start = new Date(d);
   start.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1));
 
   for(let i=0; i<7; i++) {
-    const curr = new Date(start);
-    curr.setDate(start.getDate() + i);
+    const curr = new Date(start); curr.setDate(start.getDate() + i);
     const s = fmt(curr);
     const day = document.createElement('div');
-    day.className = `week-day ${s === currentDate ? 'selected' : ''} ${s === today() ? 'today' : ''}`;
-    
+    day.className = `week-day ${s === currentDate ? 'selected' : ''}`;
     const todos = loadMergedTodos(s);
-    let dot = '';
-    if (todos.length > 0) {
-      const color = todos.some(t => !t.done) ? 'var(--danger)' : 'var(--success)';
-      dot = `<div class="has-todo-dot" style="background:${color}"></div>`;
-    }
-
-    day.innerHTML = `
-      <span class="week-day-name ${i===5?'sat':i===6?'sun':''}">${['월','화','수','목','금','토','일'][i]}</span>
-      <span class="week-day-num">${curr.getDate()}</span>
-      ${dot}
-    `;
+    let dot = todos.length ? `<div class="has-todo-dot" style="background:${todos.some(t=>!t.done)?'var(--danger)':'var(--success)'}"></div>` : '';
+    day.innerHTML = `<span style="font-size:12px; color:var(--label3)">${['월','화','수','목','금','토','일'][i]}</span><span class="week-day-num">${curr.getDate()}</span>${dot}`;
     day.onclick = () => { currentDate = s; updateWeeklyView(); render(); };
     strip.appendChild(day);
   }
 }
 
-// 주간 스와이프
+function switchTab(t) {
+  currentTab = t;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.onclick.toString().includes(t)));
+  render();
+}
+
+function goToToday() { currentDate = fmt(new Date()); updateWeeklyView(); render(); }
+
+// 가로 스와이프 (주간 이동)
 let stripStartX = 0;
-$('weekly-strip').addEventListener('touchstart', e => stripStartX = e.touches[0].clientX, {passive:true});
-$('weekly-strip').addEventListener('touchend', e => {
+$('weekly-strip').ontouchstart = e => stripStartX = e.touches[0].clientX;
+$('weekly-strip').ontouchend = e => {
   const diff = e.changedTouches[0].clientX - stripStartX;
   if (Math.abs(diff) > 60) {
-    const d = new Date(currentDate + 'T00:00:00');
+    const d = new Date(currentDate);
     d.setDate(d.getDate() + (diff > 0 ? -7 : 7));
     currentDate = fmt(d);
     updateWeeklyView(); render();
   }
-}, {passive:true});
+};
 
-function switchTab(t) {
-  currentTab = t;
-  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', (i===0 && t==='active') || (i===1 && t==='done')));
-  render();
-}
-
-function goToToday() { currentDate = today(); updateWeeklyView(); render(); }
-function openCalendar() { $('calendar-sheet').style.display = 'flex'; setTimeout(()=>$('calendar-sheet').classList.add('open'), 10); renderCal(); }
-function closeCalendar() { $('calendar-sheet').classList.remove('open'); setTimeout(()=>$('calendar-sheet').style.display = 'none', 300); }
-
-function renderCal() {
-  const grid = $('cal-grid'); grid.innerHTML = '';
-  const now = new Date();
-  for(let i=1; i<=31; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'cal-cell';
-    cell.textContent = i;
-    grid.appendChild(cell);
-  }
-}
-
-$('date-display-btn').onclick = openCalendar;
-$('todo-input').onkeydown = e => { if(e.key==='Enter') handleAddTask(); };
-
-// 초기화
 updateWeeklyView();
 render();
 </script>
