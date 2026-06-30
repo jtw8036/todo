@@ -15,7 +15,7 @@
       --bg: #F2F2F7;
       --surface: #FFFFFF;
       --accent: #007AFF;
-      --accent-light: rgba(0, 122, 255, 0.10);
+      --accent-light: rgba(0, 122, 255, 0.15);
       --danger: #FF3B30;
       --success: #34C759;
       --label: #1C1C1E;
@@ -26,76 +26,80 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    
     html, body { width: 100%; height: 100vh; overflow: hidden; font-family: 'Noto Sans KR', -apple-system, sans-serif; background: var(--bg); color: var(--label); -webkit-font-smoothing: antialiased; }
     #app { display: flex; flex-direction: column; width: 100%; height: 100vh; }
 
     /* ── Header ── */
-    #header { flex-shrink: 0; background: rgba(242,242,247,0.85); backdrop-filter: saturate(180%) blur(20px); padding: calc(var(--safe-top) + 8px) 20px 0; z-index: 100; border-bottom: 0.5px solid var(--separator); }
+    #header { flex-shrink: 0; background: rgba(242,242,247,0.85); backdrop-filter: saturate(180%) blur(20px); padding: calc(var(--safe-top) + 8px) 20px 12px; z-index: 100; border-bottom: 0.5px solid var(--separator); }
     .header-title-row { display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 8px; min-height: 56px; }
-    .large-title { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; }
+    .large-title { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
 
     .progress-area { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
     .progress-text { font-size: 12px; font-weight: 500; color: var(--label3); }
-    .progress-text span { color: var(--accent); font-weight: 600; }
-    .progress-bar-wrap { width: 80px; height: 4px; background: var(--separator); border-radius: 99px; overflow: hidden; }
-    .progress-bar-fill { height: 100%; background: var(--accent); transition: width 0.3s ease; }
+    .progress-bar-wrap { width: 80px; height: 5px; background: var(--separator); border-radius: 99px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: var(--accent); transition: width 0.4s ease; }
 
-    .date-header-wrapper { display: flex; align-items: center; justify-content: space-between; padding: 10px 4px; }
-    #date-label-main { font-size: 17px; font-weight: 700; color: var(--label); }
-    .today-pin-btn { background: var(--accent-light); border: none; border-radius: 10px; font-size: 12px; font-weight: 600; color: var(--accent); padding: 5px 10px; cursor: pointer; }
+    .date-header-wrapper { display: flex; align-items: center; justify-content: space-between; padding: 12px 4px; }
+    #date-label-main { font-size: 18px; font-weight: 700; }
+    .today-pin-btn { background: var(--accent-light); border: none; border-radius: 12px; font-size: 13px; font-weight: 600; color: var(--accent); padding: 6px 14px; cursor: pointer; }
 
-    /* ── Weekly Strip (Fixed Visibility) ── */
-    .weekly-strip-container { min-height: 70px; margin-bottom: 10px; position: relative; }
-    #weekly-strip { display: flex; justify-content: space-between; padding: 0 2px; }
-    .week-day { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 14%; cursor: pointer; position: relative; padding: 4px 0; }
-    .week-day-name { font-size: 11px; font-weight: 500; color: var(--label3); }
-    .week-day-num { font-size: 15px; font-weight: 600; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.1s; color: var(--label); }
-    
-    /* 선택된 날짜 숫자 안보임 해결 */
-    .week-day.selected .week-day-num { background: var(--accent) !important; color: #FFFFFF !important; }
-    .week-day.today .week-day-num { color: var(--accent); font-weight: 800; box-shadow: inset 0 0 0 1.5px var(--accent); }
-    .has-todo-dot { position: absolute; bottom: 0; width: 4px; height: 4px; border-radius: 50%; }
+    /* ── Weekly Strip ── */
+    .weekly-strip-container { min-height: 64px; margin-bottom: 16px; }
+    #weekly-strip { display: flex; justify-content: space-between; }
+    .week-day { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 14%; cursor: pointer; position: relative; }
+    .week-day-name { font-size: 12px; font-weight: 500; color: var(--label3); }
+    .week-day-num { font-size: 16px; font-weight: 600; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s; color: var(--label); }
+    .week-day.selected .week-day-num { background: var(--accent); color: #fff; }
+    .week-day.today .week-day-num { color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+    .has-todo-dot { position: absolute; bottom: -6px; width: 4px; height: 4px; border-radius: 50%; }
 
-    /* ── Input ── */
-    #input-bar { display: flex; align-items: center; gap: 10px; background: var(--surface); border-radius: var(--radius); padding: 8px 8px 8px 14px; margin: 0 16px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    #todo-input { flex: 1; border: none; outline: none; background: transparent; font-size: 15px; font-family: inherit; }
-    #add-btn { width: 32px; height: 32px; border: none; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    /* ── Input Bar (Fixed) ── */
+    .input-container { padding: 0 16px 4px; }
+    #input-bar { display: flex; align-items: center; gap: 10px; background: var(--surface); border-radius: var(--radius); padding: 6px 6px 6px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); width: 100%; height: 48px; }
+    #todo-input { flex: 1; border: none; outline: none; background: transparent; font-size: 16px; font-family: inherit; width: 100%; }
+    #add-btn { width: 36px; height: 36px; border: none; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
 
     /* ── Content ── */
-    #content { flex: 1; overflow-y: auto; padding: 10px 16px 100px; -webkit-overflow-scrolling: touch; }
-    .task-wrapper { position: relative; border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; background: var(--danger); touch-action: pan-y; }
+    #content { flex: 1; overflow-y: auto; padding: 16px 16px 120px; -webkit-overflow-scrolling: touch; }
+    .task-wrapper { position: relative; border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); background: var(--danger); }
     .swipe-bg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; padding-right: 20px; color: #fff; font-size: 14px; font-weight: 600; }
-    .task-card { position: relative; z-index: 1; background: var(--surface); display: flex; align-items: center; gap: 12px; padding: 14px 16px; transition: transform 0.2s ease-out; cursor: pointer; }
+    .task-card { position: relative; z-index: 1; background: var(--surface); display: flex; align-items: center; gap: 12px; padding: 16px; transition: transform 0.2s; cursor: pointer; }
     .task-card.done .task-text-title { text-decoration: line-through; color: var(--label3); }
-    .check-btn { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--separator); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .check-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--separator); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .task-card.done .check-btn { background: var(--success); border-color: var(--success); }
     .task-text { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .task-text-title { font-size: 15px; font-weight: 500; color: var(--label); }
-    .task-meta { font-size: 11px; color: var(--label3); margin-top: 2px; }
-
-    /* ── Tab Bar ── */
-    #tab-bar { position: fixed; bottom: 0; width: 100%; background: rgba(249,249,249,0.94); backdrop-filter: blur(20px); border-top: 0.5px solid var(--separator); display: flex; height: calc(60px + var(--safe-bottom)); padding-bottom: var(--safe-bottom); z-index: 1000; }
-    .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: none; background: none; color: var(--label3); transition: 0.2s; }
-    .tab-btn.active { color: var(--accent); }
-    .tab-label { font-size: 10px; font-weight: 600; margin-top: 4px; }
+    .task-text-title { font-size: 16px; font-weight: 500; }
+    .task-meta { font-size: 11px; color: var(--label3); margin-top: 4px; }
 
     /* ── Modals ── */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000; display: none; align-items: flex-end; opacity: 0; transition: opacity 0.2s; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000; display: none; align-items: flex-end; opacity: 0; transition: opacity 0.3s; }
     .modal-overlay.show { display: flex; opacity: 1; }
-    .detail-sheet { width: 100%; background: #fff; border-radius: 20px 20px 0 0; padding: 20px 20px calc(var(--safe-bottom) + 10px); transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .detail-sheet { width: 100%; background: #fff; border-radius: 24px 24px 0 0; padding: 20px 20px calc(var(--safe-bottom) + 20px); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .modal-overlay.show .detail-sheet { transform: translateY(0); }
-    .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .detail-top-label { font-size: 15px; font-weight: 700; color: var(--label); }
-    .detail-close { color: var(--accent); font-weight: 700; border: none; background: none; font-size: 15px; }
-    #detail-task-display { font-size: 19px; font-weight: 700; margin-bottom: 20px; }
-    .options-group { display: flex; gap: 8px; margin-bottom: 20px; }
-    .opt-btn { flex: 1; padding: 12px; border-radius: 12px; background: var(--bg); border: none; font-weight: 600; font-size: 13px; }
+    .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .detail-top-label { font-size: 14px; font-weight: 700; color: var(--accent); }
+    .detail-close { color: var(--accent); font-weight: 700; border: none; background: none; font-size: 16px; }
+    #detail-task-display { font-size: 20px; font-weight: 700; margin-bottom: 24px; line-height: 1.4; }
+    .options-group { display: flex; gap: 8px; margin-bottom: 24px; }
+    .opt-btn { flex: 1; padding: 14px; border-radius: 14px; background: var(--bg); border: none; font-weight: 600; font-size: 14px; }
     .opt-btn.active { background: var(--accent); color: #fff; }
-    .subtask-add-btn { width: 100%; padding: 12px; border: 1px dashed var(--separator); border-radius: 12px; background: none; color: var(--accent); font-weight: 700; margin-top: 10px; }
-    .detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-    .action-btn { padding: 14px; border-radius: 12px; border: none; font-weight: 700; font-size: 14px; }
+    .subtask-add-btn { width: 100%; padding: 14px; border: 1.5px dashed var(--separator); border-radius: 12px; background: none; color: var(--accent); font-weight: 700; }
+    .detail-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 24px; }
+    .action-btn { padding: 16px; border-radius: 16px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .btn-postpone { background: var(--accent-light); color: var(--accent); }
     .btn-delete { background: #FFF5F5; color: var(--danger); }
+
+    /* ── Calendar ── */
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; padding: 16px 0; }
+    .cal-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 15px; border-radius: 50%; cursor: pointer; font-weight: 500; }
+    .cal-cell.selected { background: var(--accent); color: #fff; font-weight: 700; }
+    .cal-cell.today { color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+    /* ── Tab Bar ── */
+    #tab-bar { position: fixed; bottom: 0; width: 100%; background: rgba(249,249,249,0.94); backdrop-filter: blur(20px); border-top: 1px solid var(--separator); display: flex; height: calc(64px + var(--safe-bottom)); padding-bottom: var(--safe-bottom); }
+    .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: none; background: none; color: var(--label3); }
+    .tab-btn.active { color: var(--accent); }
+    .tab-label { font-size: 10px; font-weight: 700; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -104,8 +108,8 @@
     <div class="header-title-row">
       <span class="large-title">할 일</span>
       <div class="progress-area">
-        <div class="progress-text"><span id="prog-done">0</span>/<span id="prog-total">0</span></div>
-        <div class="progress-bar-wrap"><div id="prog-bar" class="progress-bar-fill"></div></div>
+        <div class="progress-text"><span id="prog-done" style="color:var(--accent); font-weight:700;">0</span> / <span id="prog-total">0</span> 완료</div>
+        <div class="progress-bar-wrap"><div id="prog-bar" class="progress-bar-fill" style="width: 0%"></div></div>
       </div>
     </div>
     <div class="date-header-wrapper">
@@ -115,11 +119,13 @@
     <div class="weekly-strip-container">
       <div id="weekly-strip"></div>
     </div>
-    <div id="input-bar">
-      <input id="todo-input" type="text" placeholder="할 일을 입력하세요" autocomplete="off" />
-      <button id="add-btn" onclick="addTask()">
-        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" fill="none" stroke-width="4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </button>
+    <div class="input-container">
+      <div id="input-bar">
+        <input id="todo-input" type="text" placeholder="어떤 일을 하시나요?" autocomplete="off" />
+        <button id="add-btn" onclick="addTask()">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -127,12 +133,12 @@
 
   <nav id="tab-bar">
     <button class="tab-btn active" id="tab-active-btn" onclick="switchTab('active')">
-      <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
       <span class="tab-label">진행 중</span>
     </button>
     <button class="tab-btn" id="tab-done-btn" onclick="switchTab('done')">
-      <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" fill="none" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      <span class="tab-label">완료</span>
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span class="tab-label">완료됨</span>
     </button>
   </nav>
 </div>
@@ -141,21 +147,27 @@
 <div id="detail-modal" class="modal-overlay" onclick="closeDetail()">
   <div class="detail-sheet" onclick="event.stopPropagation()">
     <div class="detail-header">
-      <span class="detail-top-label">상세 설정</span>
+      <span class="detail-top-label">상세 정보</span>
       <button class="detail-close" onclick="closeDetail()">닫기</button>
     </div>
     <div id="detail-task-display"></div>
     <div class="options-group">
-      <button class="opt-btn" onclick="handleRecurChange('none')" id="rec-none">안 함</button>
-      <button class="opt-btn" onclick="handleRecurChange('daily')" id="rec-daily">매일</button>
-      <button class="opt-btn" onclick="handleRecurChange('weekly')" id="rec-weekly">매주</button>
+      <button class="opt-btn" onclick="handleRecurChange('none')" id="rec-none">반복 안함</button>
+      <button class="opt-btn" onclick="handleRecurChange('daily')" id="rec-daily">매일 반복</button>
+      <button class="opt-btn" onclick="handleRecurChange('weekly')" id="rec-weekly">매주 반복</button>
     </div>
-    <div id="subtask-container"></div>
-    <button class="subtask-add-btn" onclick="addSubtask()">+ 하위 항목 추가</button>
     <div class="detail-actions">
-      <button class="action-btn" style="background:var(--bg);" onclick="closeDetail()">취소</button>
-      <button class="action-btn btn-delete" onclick="handleDeleteFromDetail()">삭제</button>
+      <button class="action-btn btn-postpone" onclick="openCalendar()">날짜 미루기</button>
+      <button class="action-btn btn-delete" onclick="handleDeleteFromDetail()">삭제하기</button>
     </div>
+  </div>
+</div>
+
+<!-- 달력 모달 -->
+<div id="calendar-sheet" class="modal-overlay" onclick="closeCalendar()">
+  <div class="detail-sheet" onclick="event.stopPropagation()">
+    <div class="detail-header"><span class="detail-top-label">언제로 미룰까요?</span><button class="detail-close" onclick="closeCalendar()">취소</button></div>
+    <div class="cal-grid" id="cal-grid"></div>
   </div>
 </div>
 
@@ -183,7 +195,7 @@ function loadMergedTodos(date) {
     return false;
   }).map(r => {
     const inst = instances.find(i => i.ruleId === r.id);
-    return { ...r, id: r.id, ruleId: r.id, done: inst ? inst.done : false, subTasks: inst ? inst.subTasks : (r.subTasks || []), isRecurring: true };
+    return { ...r, id: r.id, ruleId: r.id, done: inst ? inst.done : false, isRecurring: true };
   });
   instances.filter(i => !i.ruleId).forEach(i => merged.push({ ...i, isRecurring: false }));
   return merged;
@@ -197,7 +209,7 @@ function render() {
   $('prog-bar').style.width = all.length ? (all.filter(t => t.done).length / all.length * 100) + '%' : '0%';
   
   const container = $('content');
-  container.innerHTML = list.length ? '' : '<div style="text-align:center; padding-top:60px; color:#8e8e93; font-size:14px;">할 일이 없습니다.</div>';
+  container.innerHTML = list.length ? '' : '<div style="text-align:center; padding-top:60px; color:#8e8e93; font-size:15px;">할 일을 추가해보세요!</div>';
   
   list.forEach(todo => {
     const wrap = document.createElement('div');
@@ -219,7 +231,7 @@ function render() {
 function addTask() {
   const input = $('todo-input'); if (!input.value.trim()) return;
   const todos = getRawTodos(currentDate);
-  todos.push({ id: 't-' + Date.now(), text: input.value.trim(), done: false, subTasks: [], recurring: 'none' });
+  todos.push({ id: 't-' + Date.now(), text: input.value.trim(), done: false, recurring: 'none' });
   saveRawTodos(currentDate, todos);
   input.value = ''; render(); updateWeeklyView();
 }
@@ -230,7 +242,7 @@ function toggleTodo(id, isRec) {
     let inst = todos.find(i => i.ruleId === id);
     if (!inst) {
       const rule = getRules().find(r => r.id === id);
-      todos.push({ ruleId: id, done: true, subTasks: JSON.parse(JSON.stringify(rule.subTasks || [])) });
+      todos.push({ ruleId: id, done: true });
     } else inst.done = !inst.done;
   } else {
     let t = todos.find(i => i.id === id);
@@ -243,48 +255,52 @@ function toggleTodo(id, isRec) {
 function updateWeeklyView() {
   const d = new Date(currentDate + "T00:00:00");
   $('date-label-main').textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월`;
-  const strip = $('weekly-strip');
-  strip.innerHTML = '';
-  
-  let start = new Date(d);
-  const day = d.getDay();
+  const strip = $('weekly-strip'); strip.innerHTML = '';
+  let start = new Date(d); const day = d.getDay();
   start.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
 
   for(let i=0; i<7; i++) {
-    const curr = new Date(start);
-    curr.setDate(start.getDate() + i);
-    const s = fmt(curr);
-    const isSelected = (s === currentDate);
-    const isToday = (s === fmt(new Date()));
-    
+    const curr = new Date(start); curr.setDate(start.getDate() + i); const s = fmt(curr);
     const dayEl = document.createElement('div');
-    dayEl.className = `week-day ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}`;
-    
+    dayEl.className = `week-day ${s === currentDate ? 'selected' : ''} ${s === fmt(new Date()) ? 'today' : ''}`;
     const todos = loadMergedTodos(s);
     let dot = todos.length ? `<div class="has-todo-dot" style="background:${todos.some(t=>!t.done)?'var(--danger)':'var(--success)'}"></div>` : '';
-    
-    dayEl.innerHTML = `
-      <span class="week-day-name">${['월','화','수','목','금','토','일'][i]}</span>
-      <span class="week-day-num">${curr.getDate()}</span>
-      ${dot}
-    `;
+    dayEl.innerHTML = `<span class="week-day-name">${['월','화','수','목','금','토','일'][i]}</span><span class="week-day-num">${curr.getDate()}</span>${dot}`;
     dayEl.onclick = () => { currentDate = s; updateWeeklyView(); render(); };
     strip.appendChild(dayEl);
   }
 }
 
-// 주 이동 스와이프 (성능 최적화)
-let stripStartX = 0;
-$('weekly-strip').ontouchstart = e => stripStartX = e.touches[0].clientX;
-$('weekly-strip').ontouchend = e => {
-  const diff = e.changedTouches[0].clientX - stripStartX;
-  if (Math.abs(diff) > 50) {
-    const d = new Date(currentDate + "T00:00:00");
-    d.setDate(d.getDate() + (diff > 0 ? -7 : 7));
-    currentDate = fmt(d);
-    updateWeeklyView(); render();
+function openCalendar() {
+  const todo = loadMergedTodos(currentDate).find(t => t.id === editingId);
+  if(todo?.isRecurring) { alert("반복 일정은 미룰 수 없습니다."); return; }
+  $('calendar-sheet').style.display = 'flex';
+  setTimeout(() => $('calendar-sheet').classList.add('show'), 10);
+  renderPostponeCal();
+}
+
+function closeCalendar() {
+  $('calendar-sheet').classList.remove('show');
+  setTimeout(() => $('calendar-sheet').style.display = 'none', 300);
+}
+
+function renderPostponeCal() {
+  const grid = $('cal-grid'); grid.innerHTML = ''; const now = new Date();
+  for(let i=0; i<=13; i++) {
+    const d = new Date(); d.setDate(now.getDate() + i); const s = fmt(d);
+    const cell = document.createElement('div');
+    cell.className = `cal-cell ${s === currentDate ? 'selected' : ''} ${s === fmt(new Date()) ? 'today' : ''}`;
+    cell.textContent = d.getDate();
+    cell.onclick = () => {
+      const src = getRawTodos(currentDate); const dest = getRawTodos(s);
+      const idx = src.findIndex(t => t.id === editingId);
+      const item = src.splice(idx, 1)[0]; dest.push(item);
+      saveRawTodos(currentDate, src); saveRawTodos(s, dest);
+      currentDate = s; closeCalendar(); closeDetail(); updateWeeklyView(); render();
+    };
+    grid.appendChild(cell);
   }
-};
+}
 
 function setupSwipe(wrap) {
   const card = wrap.querySelector('.task-card');
@@ -295,7 +311,7 @@ function setupSwipe(wrap) {
     if (x < 0) card.style.transform = `translateX(${Math.max(x, -80)}px)`;
   };
   card.ontouchend = e => {
-    card.style.transition = 'transform 0.2s ease-out';
+    card.style.transition = 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)';
     let x = e.changedTouches[0].clientX - startX;
     card.style.transform = (x < -40) ? `translateX(-80px)` : `translateX(0)`;
   };
@@ -312,7 +328,7 @@ function openDetail(id, isRec) {
 
 function closeDetail() {
   $('detail-modal').classList.remove('show');
-  setTimeout(() => $('detail-modal').style.display = 'none', 200);
+  setTimeout(() => $('detail-modal').style.display = 'none', 300);
 }
 
 function handleRecurChange(val) {
@@ -328,7 +344,7 @@ function handleRecurChange(val) {
   } else if (todo.isRecurring) {
     const r = rules.find(r => r.id === editingId); if(r) r.recurring = val; saveRules(rules);
   }
-  closeDetail(); render(); updateWeeklyView();
+  closeDetail(); render();
 }
 
 function deleteTodo(id, isRec) {
